@@ -50,7 +50,12 @@
           icon: 'mdi-fingerprint',
           text: '登录',
           to: '/pages/login'
-        }
+        },
+        {
+          icon: 'mdi-account-multiple-plus',
+          text: '注册',
+          to: '/pages/register'
+        },
       ],
       titles: {
         '/pages/lock': '锁屏',

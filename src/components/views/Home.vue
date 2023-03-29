@@ -4,7 +4,7 @@
       <v-col cols="1"></v-col>
       <v-col cols="10">
 
-        <base-material-card icon="mdi-earth" color="pink" title="全球最好的切割最小损耗解决方案">
+        <base-material-card icon="mdi-earth" color="pink" title="全球最好的切割解决方案">
 
           <v-row>
             <v-col cols="6" md="6" class="mt-10" background="/title.jpeg">
@@ -94,7 +94,7 @@
         <base-material-card  icon="mdi-account-multiple-plus" title="会员信息">
           <v-row align="center" class="text-center" justify="center">
             <template v-for="(plan, i) in plans">
-              <v-col :key="i" class="d-flex" cols="12" sm="6" md="3" @mouseover="hoverPlan(i)">
+              <v-col class="d-flex" cols="12" sm="6" md="3" @mouseover="hoverPlan(i)">
                 <pages-plan-card  :plan="plan" />
               </v-col>
 
@@ -220,13 +220,13 @@ export default {
     hoverPlan(index) {
       console.log(index);
       let i = 0;
-      this.plans.forEach(function(item){
-        if (index == i) {
+      this.plans.forEach((item) => {
+        if (index === i) {
           item.best = true;
-        }else{
+        } else {
           item.best = false;
         }
-        i = i + 1;
+        i++;
       });
     }
   }

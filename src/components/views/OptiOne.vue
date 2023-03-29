@@ -214,7 +214,8 @@ export default {
             '#95a5a6', // Concrete <- Clouds & Silver are close
             '#34495e', // West Asphalt <- don't use because it is very close to Midnight blue
             '#2c3e50', // Midnight Blue <- use for wasted part
-        ]
+        ],
+        wasteColor: "#7f8c8d",
     }),
     created() {
         this.$vuetify.theme.dark = false

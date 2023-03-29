@@ -33,11 +33,6 @@ export default new Router({
           component: () => import('@/components/views/Login')
         },
         {
-          name: 'Pricing',
-          path: 'pricing',
-          component: () => import('@/components/views/Prices')
-        },
-        {
           name: 'Register',
           path: 'register',
           component: () => import('@/components/views/Register')

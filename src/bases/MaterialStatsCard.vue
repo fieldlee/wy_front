@@ -6,13 +6,11 @@
     v-on="$listeners"
   >
     <template v-slot:after-heading>
-      <div class="ml-auto text-left">
-
-        <v-subheader class="display-1 mt-3 white--text">
+      <div class="ml-auto text-left ">
+        <v-subheader class="display-1 ml-auto white--text font-weight-bold">
            {{ title }}
           </v-subheader>
-
-        <h3 class="display-2 white--text font-weight-light text--primary">
+        <h3 class="display-1 white--text font-weight-bold">
           {{ value }} <small>{{ smallValue }}</small>
         </h3>
       </div>

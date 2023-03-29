@@ -8,56 +8,79 @@
               <h1 class="display-2 font-weight-bold mb-2">
                 登录
               </h1>
-              <v-btn v-for="(social, i) in socials" :key="i" :color="social.type == getTypeColor() ? '#66BB6A' : '#81C784'"
-                class="ma-1" rel="noopener" depressed rounded @click="setLoginType(social.type)">
+              <v-btn v-for="(social, i) in socials" :key="i"
+                :color="social.type == getTypeColor() ? '#66BB6A' : '#81C784'" class="ma-1" rel="noopener" depressed
+                rounded @click="setLoginType(social.type)">
                 <v-icon v-text="social.icon" />
               </v-btn>
             </div>
           </template>
 
           <v-card-text class="text-center">
-
-            <div v-if="loginType == 'account'">
-              <v-text-field color="secondary" label="账号..." prepend-icon="mdi-account-outline" class="mt-10" />
-              <v-text-field class="mb-8" color="secondary" label="密码..." type="password"
-                prepend-icon="mdi-lock-outline" />
-            </div>
+            <v-row v-if="loginType == 'account'">
+              <v-col cols="12">
+                <v-text-field color="secondary" label="账号..." v-model="loginName" prepend-icon="mdi-account-outline"
+                  class="mt-10" />
+              </v-col>
+              <v-col cols="12">
+                  <v-text-field  label="密码..." :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
+                    :type="show ? 'text' : 'password'" color="secondary" v-model="loginPassword"
+                    prepend-icon="mdi-lock-outline" @click:append.prevent="show = !show" />
+              </v-col>
+              <v-col cols="8">
+                <v-text-field color="secondary" v-model="loginImgCode" label="图片验证码..."
+                  prepend-icon="mdi-alert-decagram" />
+              </v-col>
+              <v-col cols="4">
+                <v-img :src="this.base64image" height="40" contain></v-img>
+              </v-col>
+            </v-row>
 
             <v-row v-if="loginType == 'phone'">
               <v-col cols="12">
-                <v-text-field color="secondary" label="手机号..." prepend-icon="mdi-phone" />
+                <v-text-field color="secondary" v-model="loginPhone" minLength="11" maxLength="11" label="手机号..."
+                  prepend-icon="mdi-phone" />
               </v-col>
 
               <v-col cols="8">
-                <v-text-field color="secondary" label="验证码..." prepend-icon="mdi-alert-decagram" />
+                <v-text-field color="secondary" v-model="loginImgCode" label="图片验证码..."
+                  prepend-icon="mdi-alert-decagram" />
               </v-col>
               <v-col cols="4">
-                <template v-slot:image>
-                  <v-img v-if="this.imageUrl" :src="this.imageUrl" contain alt="点击重新加载"/>
-                </template>
+                <v-img :src="this.base64image" height="40" contain></v-img>
               </v-col>
-              <v-col cols="12">
-                <v-text-field color="secondary" label="验证码..." prepend-icon="mdi-alert-box" />
+              <v-col cols="8">
+                <v-text-field color="secondary" v-model="loginValidCode" label="验证码..." prepend-icon="mdi-alert-box" />
+              </v-col>
+              <v-col cols="4">
+                <v-btn :color="'#66BB6A'" class="ma-1" rel="noopener" depressed rounded @click="sendValidCode()">
+                  验证码
+                </v-btn>
               </v-col>
             </v-row>
 
             <v-row v-if="loginType == 'email'">
               <v-col cols="12">
-                <v-text-field color="secondary" label="邮箱..." prepend-icon="mdi-email" />
+                <v-text-field color="secondary" v-model="logineMail" type="email" label="邮箱..."
+                  prepend-icon="mdi-email" />
               </v-col>
               <v-col cols="8">
-                <v-text-field color="secondary" label="验证码..." prepend-icon="mdi-alert-decagram" />
+                <v-text-field color="secondary" v-model="loginImgCode" label="图片验证码..."
+                  prepend-icon="mdi-alert-decagram" />
               </v-col>
               <v-col cols="4">
-                <template v-slot:image>
-                  <v-img :src="this.imageUrl" contain alt="点击重新加载"/>
-                </template>
+                <v-img :src="this.base64image" height="40" contain></v-img>
               </v-col>
-              <v-col cols="12">
-                <v-text-field color="secondary" label="验证码..." prepend-icon="mdi-alert-box" />
+              <v-col cols="8">
+                <v-text-field color="secondary" v-model="loginValidCode" label="验证码..." prepend-icon="mdi-alert-box" />
+              </v-col>
+              <v-col cols="4">
+                <v-btn :color="'#66BB6A'" class="ma-1" rel="noopener" depressed rounded @click="sendEmail()">
+                  验证码
+                </v-btn>
               </v-col>
             </v-row>
-            <pages-btn large color="" depressed class="v-btn--text success--text">
+            <pages-btn large color="" @click="login()" depressed class="v-btn--text success--text">
               登录
             </pages-btn>
             <div class="text-center grey--text body-1 font-weight-light">
@@ -75,23 +98,32 @@
 <script>
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios'
+
 export default {
   name: 'PagesLogin',
 
   components: {
-    PagesBtn: () => import('../elements/Btn')
+    PagesBtn: () => import('../elements/Btn'),
   },
 
   created() {
-
+    this.loginuuid = uuidv4();
+    this.getImage();
   },
 
   data: function () {
     return {
+      show: false,
+      isShowSlide: false,
+      loginName: "",
+      loginPassword: "",
+      loginPhone: "",
+      logineMail: "",
+      loginValidCode: "",
+      loginImgCode: "",
       loginType: "account",
-      loginuuid: uuidv4().toString(),
-      imageUrl: "",
-      base64imageUrl: 'http://150.158.76.64:5000/api/captcha/png/',
+      loginuuid: "",
+      base64image: "",
       socials: [
         {
           href: '#',
@@ -115,26 +147,56 @@ export default {
     setLoginType: function (type) {
       this.loginType = type;
       if (this.loginType !== 'account') {
-        this.imageUrl = this.base64imageUrl + this.loginuuid;
-        console.log(this.imageUrl);
+        this.getImage();
       }
     },
-    // getImage: function (){
-    //   let loginuuid = uuidv4().toString();
-    //   let url = 'http://150.158.76.64:5000/api/captcha/png/'+loginuuid;
-    //   axios.get(url).then((response) => {
-    //         this.base64image = "data:image/png;base64,"+response.data.data.toString();
-    //         console.log(this.base64image);
-    //       }).catch((error) => {
-    //         console.log("Network/Server error");
-    //         console.error(error);
-    //       });
-    // },
+    getImage: function () {
+      let url = 'http://150.158.76.64:5000/api/captcha/' + this.loginuuid;
+      axios.get(url).then((response) => {
+        console.log(response);
+        this.base64image = "data:image/png;base64," + response.data.data;
+        console.log(this.base64image);
+      }).catch((error) => {
+        console.log("Network/Server error");
+        console.error(error);
+      });
+    },
     getTypeColor: function () {
       if (this.loginType === undefined) {
         return "account";
       }
       return this.loginType;
+    },
+    sendEmail: function () {
+      console.log("send email to ====");
+    },
+    sendValidCode: function () {
+      console.log("send sendValidCode to ====");
+    },
+    login: function () {
+
+      let url_phone_login = "http://150.158.76.64:5000/api/login_phone";
+      let url_phone_email = "http://150.158.76.64:5000/api/login_email";
+
+      if (this.loginType === "account") {
+        let url_login = 'http://150.158.76.64:5000/api/login';
+        let login_data = {
+          "username": this.loginName,
+          "password": this.loginPassword,
+          "vcode": this.loginImgCode,
+          "uuid": this.loginuuid
+        };
+        axios.post(url_login, login_data).then((response) => {
+          console.log(response);
+          console.log(response.data.data.access_token);
+          this.$cookies.set("access_token",response.data.data.access_token);
+          this.$router.replace('/pages/opti1d');
+        }).catch((error) => {
+          console.log("Network/Server error");
+          console.error(error);
+        });
+      }
+
     }
   }
 }

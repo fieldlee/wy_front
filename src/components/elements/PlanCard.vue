@@ -7,7 +7,7 @@
     min-width="80%"
   >
     <div
-      class="body-1 grey--text"
+      class="body-1 grey--text font-weight-bold"
       v-text="plan.heading"
     />
 
@@ -22,12 +22,12 @@
     </v-avatar>
 
     <h2
-      class="display-2 font-weight-light"
+      class="display-2 font-weight-bold"
       v-text="plan.title"
     />
 
     <v-card-text
-      class="body-1 font-weight-light pa-1"
+      class="body-1 font-weight-bold pa-1"
       v-text="plan.text"
     />
 
