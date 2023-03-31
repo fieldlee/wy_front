@@ -40,11 +40,22 @@
     name: 'PagesCoreAppBar',
 
     data: () => ({
+      logined: true,
       items: [
         {
           icon: 'mdi-view-dashboard',
           text: '首页',
           to: '/'
+        },
+        {
+          icon: 'mdi-format-line-weight',
+          text: '分条',
+          to: '/pages/opti1d'
+        },
+        {
+          icon: 'mdi-format-line-style',
+          text: '分块',
+          to: '/pages/optiarea'
         },
         {
           icon: 'mdi-fingerprint',
@@ -56,20 +67,36 @@
           text: '注册',
           to: '/pages/register'
         },
+        {
+          icon: 'mdi-lock-reset',
+          text: '忘记密码',
+          to: '/pages/forget'
+        }
       ],
       titles: {
         '/pages/lock': '锁屏',
         '/pages/login': '登录',
         '/pages/pricing': '',
         '/pages/register': '注册',
+        '/pages/forget': '忘记密码',
         '/pages/opti1d': '分条切割方案',
         '/pages/optiarea': '分块切割方案'
       }
     }),
-
+    created(){
+      this.getLogined();
+    },
     computed: {
       title() {
         return this.titles[this.$route.path]
+      }
+    },
+    methods: {
+      getLogined() {
+        if (this.$cookies.get("access_token")) {
+          this.logined = true
+        }
+        this.logined =  false
       }
     }
   }

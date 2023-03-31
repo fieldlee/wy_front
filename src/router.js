@@ -46,6 +46,11 @@ export default new Router({
           name: 'OptiArea',
           path: 'optiarea',
           component: () => import('@/components/views/OptiArea')
+        },
+        {
+          name: 'Forget',
+          path: 'forget',
+          component: () => import('@/components/views/Forget')
         }
       ]
     },

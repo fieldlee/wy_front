@@ -8,11 +8,11 @@
                     <v-simple-table>
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>长度</th>
-                                <th>数量</th>
-                                <th>重量</th>
-                                <th>边丝宽</th>
+                                <th >#</th>
+                                <th >长度</th>
+                                <th >数量</th>
+                                <th >重量</th>
+                                <th >边丝宽</th>
                                 <th class="text-right" width="20%">
                                     增加/减少
                                 </th>
@@ -61,7 +61,7 @@
                     <v-simple-table>
                         <thead>
                             <tr>
-                                <th>#</th>
+                                <th width="4%">#</th>
                                 <th>长度</th>
                                 <th>按数量</th>
                                 <th>按重量</th>

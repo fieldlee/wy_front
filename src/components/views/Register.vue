@@ -1,6 +1,7 @@
 <template>
   <v-container id="register" fill-height tag="section">
-    <v-row justify="center">
+    <v-form ref="registerForm">
+      <v-row justify="center">
       <v-col cols="9">
         <v-slide-y-transition appear>
 
@@ -10,7 +11,6 @@
             </pages-heading>
 
             <v-row>
-
               <v-col cols="12" md="6">
                 <v-row no-gutters>
                   <v-col v-for="(section, i) in sections" :key="i" cols="12">
@@ -39,14 +39,16 @@
 
                   <div class="my-2" />
 
-                  <v-text-field color="secondary" label="用户名..." v-model="account" prepend-icon="mdi-account" />
+                  <v-text-field color="secondary" label="用户名..." v-model="account" :rules="usernameValidation" prepend-icon="mdi-account" />
 
-                  <v-text-field color="secondary" label="手机号或邮箱..." v-model="phoneOrmail" prepend-icon="mdi-email" />
+                  <v-text-field color="secondary" label="手机号或邮箱..." v-model="phoneOrmail" :rules="emailValidation"  prepend-icon="mdi-file-phone-outline"  />
 
                   <v-text-field label="密码..." :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
+                  :rules="passwordValidation"
                     :type="show ? 'text' : 'password'" color="secondary" v-model="password"
                     prepend-icon="mdi-lock-outline" @click:append.prevent="show = !show" />
                   <v-text-field label="密码..." :append-icon="show2 ? 'mdi-eye' : 'mdi-eye-off'"
+                  :rules="passwordValidation"
                     :type="show2 ? 'text' : 'password'" color="secondary" v-model="repassword"
                     prepend-icon="mdi-lock-outline" @click:append.prevent="show2 = !show2" />
                   <v-row>
@@ -55,7 +57,15 @@
                         prepend-icon="mdi-alert-decagram" />
                     </v-col>
                     <v-col cols="4">
-                      <v-img :src="this.base64image" height="40" contain></v-img>
+                      <v-img :src="this.base64image" @click="reloadImg()" height="40" width="120" contain></v-img>
+                      <div align="right">
+                  <span class="font-weight-light" style="font-size: 8px; color: #3c4858" align="right">
+                    <a :href="'#'" @click="reloadImg()" rel="noopener" class="secondary--text"
+                      style="text-decoration:none;">
+                      点击刷新
+                    </a>
+                  </span>
+                </div>
                     </v-col>
                   </v-row>
 
@@ -75,6 +85,8 @@
         </v-slide-y-transition>
       </v-col>
     </v-row>
+    </v-form>
+
     <base-material-snackbar v-model="snackbar" :type="color" v-bind="{
       top: true,
       center: true
@@ -151,7 +163,35 @@ export default {
     this.loginuuid = uuidv4();
     this.getImage();
   },
+  computed: {
+    usernameValidation: function () {
+      return [value => this.checkLen_forValidate(value) || "账号名称至少6位"]
+    },
+    emailValidation: function () {
+      return [value => this.checkInput_forValidate(value) || "手机号或邮箱格式不对"]
+    },
+    passwordValidation: function () {
+      return [value => this.checkLen_forValidate(value) || "密码至少6位"]
+    }
+  },
   methods: {
+    checkLen_forValidate: function (str) {
+      if (str && str.length < 6){
+        return false;
+      }
+      return true;
+    },
+    checkInput_forValidate: function (str) {
+      const phoneReg = /^[1][2,3,4,5,6,7,8,9][0-9]{9}$/;
+      const emailReg = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+$/;
+      if (phoneReg.test(str)) {
+        return true;
+      }
+      if (emailReg.test(str)) {
+        return true;
+      }
+      return false;
+    },
     checkInput: function (str) {
       const phoneReg = /^[1][2,3,4,5,6,7,8,9][0-9]{9}$/;
       const emailReg = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+$/;
@@ -166,8 +206,11 @@ export default {
     gotoLogin: function () {
       this.$router.replace('/pages/login');
     },
+    reloadImg: function(){
+      this.getImage();
+    },
     getImage: function () {
-      let url = 'http://150.158.76.64:5000/api/captcha/' + this.loginuuid;
+      let url = 'http://127.0.0.1:5001/api/captcha/' + this.loginuuid;
       axios.get(url).then((response) => {
         console.log(response);
         this.base64image = "data:image/png;base64," + response.data.data;
@@ -186,9 +229,7 @@ export default {
       }
       this.snackbarMsg = msg;
     },
-    checkAccount: function () {
 
-    },
     register: function () {
       if ((this.account == null || this.account == '' || this.account.length < 6 )) {
         this.alertErr(true, "请输入您的账号,账号至少6位");
@@ -210,8 +251,9 @@ export default {
         "pwd": this.password,
         "phone": "",
         "email": "",
-        "code": "",
-        "register_type": "Password"
+        "register_type": "Password",
+        "uuid": this.loginuuid,
+        "code":this.loginImgCode
       };
 
       if (this.checkInput(this.phoneOrmail) == "phone" || this.checkInput(this.phoneOrmail) == "email") {
@@ -226,7 +268,7 @@ export default {
         return
       }
 
-      let check_url = "http://150.158.76.64:5000/api/check_keys";
+      let check_url = "http://127.0.0.1:5001/api/check_keys";
       let check_obj = {
         "account": this.account
       };
@@ -237,7 +279,7 @@ export default {
           return
         }
         //注册账号
-        let register_url = "http://150.158.76.64:5000/api/register";
+        let register_url = "http://127.0.0.1:5001/api/register";
         axios.post(register_url, register).then((response) => {
           console.log(response);
           if (response.data.code == 0) {
