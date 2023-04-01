@@ -442,7 +442,12 @@
         switch1: true,
         zoom: 0
       }),
-
+      created() {
+        this.$vuetify.theme.dark = false
+    },
+    destroyed() {
+        this.$vuetify.theme.dark = true
+    },
       methods: {
         zoomOut() {
           this.zoom = (this.zoom - 10) || 0

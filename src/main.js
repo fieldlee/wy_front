@@ -8,8 +8,7 @@ import store from './store'
 import './plugins/base'
 import './plugins/vue-world-map'
 
-
-Vue.use(VueCookies);
+Vue.use(VueCookies, { expires: '30d'});
 Vue.config.productionTip = false
 
 new Vue({

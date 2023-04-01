@@ -1,7 +1,7 @@
 <template>
   <v-app>
-    <pages-core-app-bar />
-    <pages-core-view />
+    <pages-core-app-bar :logined="logined"/>
+    <pages-core-view @func="getLoginedFromLogin"/>
     <pages-core-footer-bar />
   </v-app>
 </template>
@@ -15,13 +15,33 @@
       PagesCoreFooterBar: () => import('../components/FooterBar'),
       PagesCoreView: () => import('../components/View'),
     },
-
+    data () {
+        return {
+            logined: false
+        }
+    },
     created() {
-      this.$vuetify.theme.dark = true
+      this.$vuetify.theme.dark = true;
+      this.getLogined();
+      console.log(this.logined);
     },
 
     beforeDestroy() {
       this.$vuetify.theme.dark = true
+    },
+    methods: {
+      getLoginedFromLogin(data){
+        console.log("index=====",data);
+        this.logined = data;
+      },
+      getLogined() {
+        if ($cookies.get("access_token")) {
+          this.logined = true;
+          return;
+        }
+        this.logined = false;
+        return;
+    },
     }
   }
 </script>

@@ -148,6 +148,7 @@ export default {
 
   data: function () {
     return {
+      logined: false,
       show: false,
       isShowSlide: false,
       loginName: "",
@@ -304,6 +305,8 @@ export default {
           if (response.data.code == 0) {
             console.log(response.data.data.access_token);
             this.$cookies.set("access_token", response.data.data.access_token);
+            this.logined = true;
+            this.$emit('func',this.logined);
             this.$router.replace('/pages/opti1d');
             return
           }

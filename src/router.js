@@ -1,9 +1,10 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 
+
 Vue.use(Router)
 
-export default new Router({
+const router =  new Router({
   mode: 'history',
   base: process.env.BASE_URL,
   routes: [
@@ -66,4 +67,18 @@ export default new Router({
       ]
     }
   ]
-})
+});
+
+// router.beforeEach((to, from, next) => {
+//   let isLogined = false;
+//   if ($cookies){
+//     isLogined = !!$cookies.get("access_token");
+
+//   }
+//   if ((to.name === "Home"||to.name === "OptiOne"||to.name === "OptiArea") && !isLogined) {
+//     return next({ path: "/pages/login" });
+//   }
+//   next();
+// });
+
+export default router;

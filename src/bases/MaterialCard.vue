@@ -37,7 +37,7 @@
 
         <div
           v-else-if="title && !icon"
-          class="body-1 font-weight-blod text--primary white--text"
+          class="body-2  text--primary grey--text"
           v-text="title"
         />
         <div class="text-center" v-else-if="icon">
@@ -55,7 +55,7 @@
 
       <div
         v-if="$slots['after-heading']"
-        class="ml-6"
+        class="ml-auto"
       >
         <slot name="after-heading" />
       </div>
@@ -72,9 +72,11 @@
         v-else-if="icon && title"
         class="ml-4"
       >
-      <v-subheader class="display-1 mt-3 white--text">
-           {{ title }}
-          </v-subheader>
+      <v-subheader :class="isDesc ? 'body-2 mt-1 font-weight-bold secondary--text' : 'display-1 mt-3 white--text'">
+           <div
+          v-html="title"
+        />
+      </v-subheader>
 
       </div>
     </div>
@@ -127,6 +129,10 @@
       title: {
         type: String,
         default: ''
+      },
+      isDesc: {
+        type: Boolean,
+        default: false
       }
     },
 
@@ -138,7 +144,7 @@
         }
       },
       hasHeading() {
-        return Boolean(this.$slots.heading || this.title || this.icon)
+        return Boolean(this.$slots.heading || this.title  ||this.icon)
       },
       hasAltHeading() {
         return Boolean(this.$slots.heading || (this.title && this.icon))

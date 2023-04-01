@@ -1,7 +1,7 @@
 <template>
     <v-main
       id="pages"
-      :class="this.$vuetify.theme.dark ? undefined : 'grey lighten-2'"
+      :class="this.$vuetify.theme.dark ? undefined : 'white lighten-2'"
     >
       <v-img
         :class="{
@@ -12,7 +12,7 @@
         gradient="to top, rgba(0, 0, 0, .5), rgba(0, 0, 0, .5)"
         min-height="100%"
       >
-        <router-view />
+        <router-view @func="getLoginedFromLogin"/>
       </v-img>
     </v-main>
   </template>
@@ -34,7 +34,13 @@
         src() {
           return this.srcs[this.$route.path]
         }
-      }
+      },
+      methods: {
+        getLoginedFromLogin(data){
+          console.log("view====",data);
+          this.$emit('func',data);
+        }
+    }
     }
   </script>
 
