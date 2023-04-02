@@ -32,7 +32,7 @@
     props: {
       dismissible: {
         type: Boolean,
-        default: true
+        default: false
       },
       type: {
         type: String,

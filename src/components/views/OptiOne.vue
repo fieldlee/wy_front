@@ -44,7 +44,6 @@
                             </tr>
                         </tbody>
 
-
                     </v-simple-table>
                     <v-row>
                         <v-col cols="1" />
@@ -60,7 +59,7 @@
                         </v-col>
                         <v-col cols="3">
                             <v-card-actions class="pl-0 text-right">
-                                <v-btn color="success" min-width="100" max-width="30">
+                                <v-btn color="success" min-width="100" max-width="30" @click="selectSpec()">
                                     选择常用规格
                                 </v-btn>
                             </v-card-actions>
@@ -137,7 +136,7 @@
                     class="px-5 py-3">
                     <v-row>
                         <v-col cols="2" v-for="(child_rolls, index) in mode_data.childs_for_select" v-bind:key="index">
-                            <v-simple-table class="theme--dark" @mouseover="hoverPlan(i)">
+                            <v-simple-table class="theme--dark" dense @mouseover="hoverPlan(i)">
                                 <thead>
                                     <tr>
                                         <th>#</th>
@@ -168,18 +167,18 @@
                                     </tr>
                                 </tbody>
                             </v-simple-table>
-                            <div class="text-center" style="margin-top:-15px; z-index: 1;">
+                            <div class="text-center" style="margin-top:-10px; z-index: 1;">
                                 <pages-btn :color="!child_rolls.select ? 'info' : 'success'" small depressed
                                     @click="selectdRow(index)" min-width="50">
-                                    {{ '选择我' }}
+                                    {{ '选我' }}
                                 </pages-btn>
                             </div>
                         </v-col>
                     </v-row>
-                    <v-row v-show="selectedSolIndex">
-                        <v-col cols="12">
+                    <v-row style="margin-top:-20px">
+                        <v-col cols="11">
                             <div id="d3_area">
-                                <svg></svg>
+                                <svg style="height: 100"></svg>
                             </div>
                         </v-col>
                     </v-row>
@@ -196,63 +195,125 @@
                         <thead>
                             <tr>
                                 <th width="4%">#</th>
-                                <th>宽度</th>
-                                <th>重量</th>
-                                <th>使用率</th>
-                                <th>损耗宽度</th>
-                                <th>损耗重量</th>
-                                <th width="25%">明细</th>
-                                <th width="25%">分组</th>
+                                <th><b>宽度</b></th>
+                                <th><b>重量</b></th>
+                                <th><b>使用率</b></th>
+                                <th><b>损耗宽度</b></th>
+                                <th><b>损耗重量</b></th>
+                                <th width="50%"><b>明细(规格*数量/重量)</b></th>
                             </tr>
                         </thead>
 
-                        <tbody>
-                            <tr>
-                                <td>1</td>
+                        <tbody v-if="mode_data.result">
+                            <tr v-for="(bigRoll, index) in mode_data.result.solutions" v-bind:key="index">
+                                <td>{{ index + 1 }}</td>
                                 <td>
-                                    <v-text-field dense color="secondary" outlined label="宽度" />
+                                    {{ bigRoll[4] }}
                                 </td>
                                 <td>
-                                    <v-text-field dense color="secondary" outlined label="重量" />
+                                    {{ bigRoll[5] }}
                                 </td>
                                 <td>
-                                    <v-text-field dense color="secondary" outlined label="使用率" />
+                                    {{ getPercentageUtilization(bigRoll[0], bigRoll[1]) }}%
                                 </td>
                                 <td>
-                                    <v-text-field dense color="secondary" outlined label="损耗宽度" />
+                                    {{ bigRoll[0] }}
                                 </td>
                                 <td>
-                                    <v-text-field dense color="secondary" outlined label="损耗重量" />
+                                    {{ bigRoll[2] }}
                                 </td>
                                 <td>
-                                    <v-text-field dense color="secondary" outlined label="明细" />
-                                </td>
-                                <td>
-                                    <v-text-field dense color="secondary" outlined label="分组" />
+                                    {{ bigRoll[3].join(',') }}
                                 </td>
                             </tr>
                         </tbody>
-                        <tfoot>
-                            <td>合计</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                        </tfoot>
                     </v-simple-table>
+                    <v-row class="text-right">
+                        <v-col cols="5"></v-col>
+                        <v-col cols="3">
+                            <v-card-actions class="pl-0 text-right">
+                                <v-btn color="success" :disabled="cutBtnDisabled" @click="downloadCsv()">
+                                    下载
+                                </v-btn>
+                            </v-card-actions>
+                        </v-col>
+                        <v-col cols="4">
+                        </v-col>
+                    </v-row>
                 </base-material-card>
             </v-col>
             <v-col cols="1"></v-col>
 
         </v-row>
-        <base-material-snackbar v-model="snackbar" :type="color" v-bind="{
+        <!---对话框-->
+        <base-material-snackbar v-model="snackbar" :timeout="2000" :type="color" v-bind="{
             top: true,
             center: true
         }">
             <span class="font-weight-bold">{{ snackbarMsg }}</span>
         </base-material-snackbar>
+        <!---loading-->
+        <v-dialog v-model="dialog" :scrim="false" persistent width="auto">
+            <v-card color="success">
+                <v-card-text>
+                    <span class="white--text font-weight-bold"><b>请稍后，计算中...</b></span>
+                    <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
+                </v-card-text>
+            </v-card>
+        </v-dialog>
+
+        <!---选择规格-->
+        <v-dialog v-model="dialogSelect" scrollable width="400">
+            <v-card>
+                <v-toolbar color="info">
+                    <v-toolbar-title>选择常用规格</v-toolbar-title>
+                    <v-spacer></v-spacer>
+
+                    <v-btn small class="px-2 ml-1" color="info" variant="text" @click="dialogAdd = true">
+                            <v-icon>mdi-plus</v-icon>
+                        </v-btn>
+                </v-toolbar>
+                <v-divider></v-divider>
+                <v-data-table :headers="headers" :items="selections" hide-default-footer show-select v-model="selected">
+                </v-data-table>
+                <v-divider></v-divider>
+                <v-card-actions>
+                    <v-btn color="success" variant="text" @click="selectedSpec()">
+                        确定
+                    </v-btn>
+                    <v-btn color="blue-darken-1" variant="text" @click="dialogSelect = false">
+                        关闭
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+        <!---添加规格-->
+        <v-dialog v-model="dialogAdd" scrollable width="300">
+            <v-card>
+                <v-toolbar color="info">
+                    <v-toolbar-title>添加常用规格</v-toolbar-title>
+                    <v-spacer></v-spacer>
+                </v-toolbar>
+                <v-divider></v-divider>
+                <v-row>
+                    <v-col cols="1"></v-col>
+                    <v-col cols="10">
+                        <v-text-field width="80%" v-model="addSpecInfo.length" label="长度" color="secondary" type="number" />
+                    <v-text-field width="80%" v-model="addSpecInfo.weight" label="重量" color="secondary" type="number" />
+                    </v-col>
+                    <v-col cols="1"></v-col>
+                </v-row>
+                <v-divider></v-divider>
+                <v-card-actions>
+                    <v-btn color="success" variant="text" @click="addSpec()">
+                        添加
+                    </v-btn>
+                    <v-btn color="blue-darken-1" variant="text" @click="dialogAdd = false">
+                        关闭
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-container>
 </template>
 
@@ -265,6 +326,9 @@ export default {
         PagesBtn: () => import('../elements/Btn.vue')
     },
     data: () => ({
+        dialogAdd: false,
+        dialogSelect: false,
+        dialog: false,
         selectedSolIndex: false,
         cutBtnDisabled: false,
         side: 3,
@@ -305,6 +369,26 @@ export default {
             result: null,
             childs_for_select: null,
         },
+
+        headers: [
+            {
+                text: '长度',
+                value: 'length'
+            },
+            {
+                text: '重量',
+                value: 'weight'
+            }
+        ],
+        selections: [
+            ],
+        selected: [],
+        addSpecInfo: {
+            spec_type: "ParentOne",
+            length: 0,
+            width: 0,
+            weight: 0
+        },
     }),
     created() {
         this.$vuetify.theme.dark = false
@@ -313,6 +397,20 @@ export default {
         this.$vuetify.theme.dark = true
     },
     methods: {
+        getPercentageUtilization: function (unusedWidth, list_length) {
+            let parentWidth = unusedWidth;
+            list_length.forEach((n) => {
+                parentWidth += n;
+            });
+            let usedWidth = Math.abs(parentWidth - unusedWidth);
+            let percentage = (usedWidth * 100) / parentWidth;
+
+            percentage *= 100; // preserve 2 digits after decimal
+            percentage = Math.round(percentage); // remove the decimal part
+            percentage /= 100; // back to original percentage
+
+            return percentage;
+        },
         hoverPlan(index) {
             console.log(index);
             let i = 0;
@@ -328,6 +426,7 @@ export default {
         selectdRow: function (idx) {
             this.selectedSolIndex = true;
             let selectdChild = this.mode_data.childs_for_select[idx];
+            console.log(selectdChild);
             for (let index = 0; index < selectdChild.sub_child_solver.length; index++) {
                 const ele = selectdChild.sub_child_solver[index];
                 this.mode_data.childs[index].quantity = ele.quantity;
@@ -339,17 +438,22 @@ export default {
             let rolls = [];
             this.mode_data.result.data.solutions.forEach((soluton) => {
                 let subs = [];
+                let all_len = Math.round(parseFloat(soluton.un_used)) / 1000;
+                let all_weight = Math.round(parseFloat(soluton.un_used_weight)) / 1000;
                 soluton.subs.forEach((s) => {
+                    all_len += Math.round(parseFloat(s)) / 1000;
                     subs.push(Math.round(parseFloat(s)) / 1000);
                 });
+                all_len += parseFloat(this.side);  // add side lenght
                 let subs_weight = [];
                 soluton.sub_weights.forEach((s) => {
+                    all_weight += Math.round(parseFloat(s)) / 1000;
                     subs_weight.push(Math.round(parseFloat(s)) / 1000);
                 });
-
-                rolls.push([parseFloat(soluton.un_used / 1000), subs, parseFloat(soluton.un_used_weight / 1000), subs_weight]);
+                all_weight = Math.round(all_weight * 1000) / 1000;
+                rolls.push([parseFloat(soluton.un_used / 1000), subs, parseFloat(soluton.un_used_weight / 1000), subs_weight, all_len, all_weight]);
             });
-            console.log(rolls);
+
             this.mode_data.result.solutions = rolls;
             let child_index = 0;
             this.mode_data.result.data.sub_weights.forEach(() => {
@@ -375,6 +479,44 @@ export default {
                 this.color = 'info';
             }
             this.snackbarMsg = msg;
+        },
+        selectSpec: function () {
+            this.dialogSelect = true;
+            this.getSelections();
+        },
+        selectedSpec: function () {
+            this.dialogSelect = false;
+
+            this.selected.forEach((item) => {
+                this.mode_data.parents.push({ width: item.length, quantity: 1, weight: item.weight });
+            })
+        },
+        addSpec: function () {
+            let url_selection = "http://127.0.0.1:5001/api/save_spec";
+            let config = {
+                headers: {
+                    access_token: $cookies.get("access_token")
+                }
+            };
+            this.addSpecInfo.length = parseFloat(this.addSpecInfo.length);
+            this.addSpecInfo.weight = parseFloat(this.addSpecInfo.weight);
+            console.log(this.addSpecInfo);
+            axios.post(url_selection, this.addSpecInfo,config)
+                .then((response) => {
+                    console.log(response);
+                    this.dialogAdd = false;
+                    if (response.data.code == 0) {
+
+                        return
+                    }
+                    this.alertErr(true, response.data.msg);
+                    return
+                })
+                .catch((error) => {
+                    this.dialogAdd = false;
+                    this.alertErr(true, error.message);
+                    return false;
+                });
         },
         prepareDataToSend1DForRule: function () {
             let newChilds = [];
@@ -413,11 +555,11 @@ export default {
                     access_token: $cookies.get("access_token")
                 }
             };
-
+            this.dialog = true;
             axios.post(url, dataToSend, config)
                 .then((response) => {
                     this.disableCutBtn(false);
-                    console.log(response);
+                    this.dialog = false;
                     if (response.data.code == 0) {
                         response.data.data.solutions.forEach((sol) => {
                             if (sol.sub_child_solver.length > 0) {
@@ -430,16 +572,16 @@ export default {
                             sol.solutions.solutions.forEach((sud_sol) => {
                                 worstWidth += parseFloat(sud_sol.un_used);
                             });
-                            sol.worstWidth = (worstWidth / 1000) + this.side;
+                            sol.worstWidth = (worstWidth / 1000) + parseFloat(this.side);
                         });
                         this.mode_data.childs_for_select = response.data.data.solutions;
-                        console.log(this.mode_data.childs_for_select);
                         return
                     }
                     this.alertErr(true, response.data.msg);
                 })
                 .catch((error) => {
                     this.disableCutBtn(false);
+                    this.dialog = false;
                     this.alertErr(true, error.message);
                     return false;
                 });
@@ -554,7 +696,12 @@ export default {
             const bigRolls = this.sortBigRolls(unSortedBigRolls);
             this.mode_data.result.solutions = bigRolls;
             const colorDict = this.getColorDict();
-            const parentWidth = this.mode_data.parents[0].width;
+            let parentWidth = this.mode_data.parents[0].width;
+            this.mode_data.parents.forEach((item) => {
+                if (item.width > parentWidth) {
+                    parentWidth = item.width;
+                }
+            });
             // get the current width alloted to #d3_area, it's dynamic
             const graphWidth = document.getElementById("d3_area").clientWidth;
             console.log(graphWidth);
@@ -571,7 +718,7 @@ export default {
             // create svg element:
             let svg = d3.select("#d3_area svg");
 
-            let margin = { top: 20, right: 20, bottom: 20, left: 20 };
+            let margin = { top: 5, right: 10, bottom: 5, left: 10 };
 
             let svgWidth = graphWidth - margin.left - margin.right;
             let svgHeight = 100 - margin.top - margin.bottom;
@@ -655,6 +802,80 @@ export default {
         removeRowToParents: function (index) {
             this.mode_data.parents.splice(index, 1);
         },
+        downloadCsv: function () {
+            if (!this.mode_data.result || !this.mode_data.result.solutions) {
+                console.log("downloadCsv: bigRolls are empty..");
+                return;
+            }
+
+            // prepare data
+            let dataForCsv = [["序号", "长度", "重量", "使用率", "损耗宽度", "损耗重量", "明细（规格*数量/重量）"]];
+            let numSmallRolls = 0;
+
+            const bigRolls = this.mode_data.result.solutions;
+            for (let i = 0; i < bigRolls.length; i++) {
+                const smallRolls = bigRolls[i][1];
+                numSmallRolls += smallRolls.length;
+                // ['Stock #', 'Usage', 'Width of Cuts']
+                const nextRow = [
+                    i + 1,
+                    bigRolls[i][4],
+                    bigRolls[i][5],
+                    this.getPercentageUtilization(bigRolls[i][0], bigRolls[i][1]) + "%",
+                    bigRolls[i][0],
+                    bigRolls[i][2],
+                    bigRolls[i][3].join(",")
+                ];
+                dataForCsv.push(nextRow);
+            }
+
+            // convert to CSV format
+            // source: https://stackoverflow.com/a/14966131/3578289
+            const csvContent =
+                "data:text/csv;charset=utf-8," +
+                dataForCsv.map((e) => e.join(",")).join("\n");
+            // console.log('csvContent: ', csvContent);
+
+            // download the file
+            let encodedUri = encodeURI(csvContent);
+            // console.log('encodedUri: ', encodedUri);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+
+            // unique and identifiable filename
+            const d = new Date();
+            const dateString = `${d.getFullYear()}-${d.getMonth() + 1
+                }-${d.getUTCDate()}-${d.getHours()}${d.getMinutes()}-${d.getSeconds()}`;
+
+            const filename = `cuts_${numSmallRolls}_${dateString}.csv`;
+            link.setAttribute("download", filename);
+
+            document.body.appendChild(link); // Required for FF
+            link.click(); // This will download the data file named "my_data.csv".
+        },
+        getSelections: function () {
+            let url_selection = "http://127.0.0.1:5001/api/get_spec/parentOne";
+            let config = {
+                headers: {
+                    access_token: $cookies.get("access_token")
+                }
+            };
+            axios.get(url_selection,config)
+                .then((response) => {
+                    console.log(response);
+                    if (response.data.code == 0) {
+                        this.selections = [];
+                        response.data.data.forEach((data) => this.selections.push(data))
+                        return
+                    }
+                    this.alertErr(true, response.data.msg);
+                    return
+                })
+                .catch((error) => {
+                    this.alertErr(true, error.message);
+                    return false;
+                });
+        }
     }
 }
 </script>

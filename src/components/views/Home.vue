@@ -122,17 +122,27 @@
         >
           <v-form>
             <v-row>
-              <v-col cols="6">
+              <v-col cols="4">
+                <v-text-field
+                  label="您的称呼"
+                  v-model="reportInfo.name"
+                  outlined
+                  class="ml-4"
+                  />
+              </v-col>
+              <v-col cols="4">
                 <v-text-field
                   label="您的邮箱"
+                  v-model="reportInfo.email"
                   outlined
                   class="ml-4"
                   />
               </v-col>
 
-              <v-col cols="6">
+              <v-col cols="4">
                 <v-text-field
                 label="您的电话"
+                v-model="reportInfo.phone"
                 outlined
                 class="ml-4"
               />
@@ -142,7 +152,7 @@
                   outlined
                   name="input-7-4"
                   label="您的意见"
-                  value=""
+                  v-model="reportInfo.content"
                 />
               </v-col>
 
@@ -155,6 +165,7 @@
                 color="#00838F"
                 min-width="100"
                 class="ma-1 justify-center"
+                @click="saveReport()"
               >
                 请收下我的反馈
               </v-btn>
@@ -165,10 +176,17 @@
       </v-col>
       <v-col cols="1"></v-col>
     </v-row>
+    <base-material-snackbar v-model="snackbar" :timeout="2000" :type="color" v-bind="{
+      top: true,
+      center: true
+    }">
+      <span class="font-weight-bold">{{ snackbarMsg }}</span>
+    </base-material-snackbar>
   </v-container>
 </template>
 
 <script>
+import axios from 'axios'
 export default {
   name: 'PagesPricing',
 
@@ -177,10 +195,20 @@ export default {
   },
 
   data: () => ({
+    snackbar: false,
+      color: "info",
+      snackbarMsg: "",
     countryData: {
       CN: 100,
       US: 4999,
       CA: 5000,
+    },
+    reportInfo:{
+      name:"",
+      report_type:"Suggest",
+      phone:"",
+      email:"",
+      content:""
     },
     plans: [
       {
@@ -214,6 +242,33 @@ export default {
     ]
   }),
   methods: {
+    checkInput_forValidate: function (str) {
+      const phoneReg = /^[1][2,3,4,5,6,7,8,9][0-9]{9}$/;
+      const emailReg = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+$/;
+      if (phoneReg.test(str)) {
+        return true;
+      }
+      if (emailReg.test(str)) {
+        return true;
+      }
+      return false;
+    },
+    emailValidation: function () {
+      return [value => this.checkInput_forValidate(value) || "邮箱格式不对"]
+    },
+    phoneValidation: function () {
+      return [value => this.checkInput_forValidate(value) || "手机号格式不对"]
+    },
+    alertErr: function (error, msg) {
+      this.snackbar = true;
+      if (error === true) {
+        this.color = 'error';
+      } else {
+        this.color = 'info';
+      }
+      this.snackbarMsg = msg;
+
+    },
     router2Opti() {
       this.$router.replace('/pages/opti1d');
     },
@@ -228,6 +283,36 @@ export default {
         }
         i++;
       });
+    },
+    saveReport(){
+
+      let url_report = 'http://127.0.0.1:5001/api/save_report';
+      if (this.reportInfo.phone == "" || this.reportInfo.email == ""){
+        this.alertErr(true, "请留下您的联系方式");
+        return ;
+      }
+      if (this.reportInfo.content == ""){
+        this.alertErr(true, "请留下您的宝贵的建议");
+        return ;
+      }
+      axios.post(url_report, this.reportInfo).then((response) => {
+        console.log(response);
+          if (response.data.code == 0) {
+            this.alertErr(false, "谢谢您的宝贵意见，我们会尽快查看您的反馈。");
+            this.reportInfo.content = "";
+            this.reportInfo.email = "";
+            this.reportInfo.phone = "";
+            this.reportInfo.name = "";
+            return
+          }
+          this.alertErr(true, response.data.msg);
+          return
+        }).catch((error) => {
+          console.log("Network/Server error");
+          console.error(error);
+          this.alertErr(true, error);
+          return
+        });
     }
   }
 }

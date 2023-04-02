@@ -24,7 +24,7 @@
           <v-divider v-if="p.divider" :key="`divider-${i}`" class="mb-2 mt-2" />
 
           <app-bar-item v-else :key="`item-${i}`" to="/" >
-            <v-list-item-title v-text="p.title" @click="logout" />
+            <v-list-item-title v-text="p.title" @click="logout"  />
           </app-bar-item>
         </template>
       </v-list>
@@ -111,8 +111,9 @@ export default {
       '/pages/optiarea': '分块切割方案'
     },
     profile: [
+      { title: '设置常用',icon:"mdi-account"  },
       { divider: true },
-      { title: '退出系统' }
+      { title: '退出系统',icon:"mdi-account" }
     ]
   }),
   computed: {

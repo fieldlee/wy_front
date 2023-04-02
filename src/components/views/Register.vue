@@ -87,7 +87,7 @@
     </v-row>
     </v-form>
 
-    <base-material-snackbar v-model="snackbar" :type="color" v-bind="{
+    <base-material-snackbar v-model="snackbar" :timeout="2000" :type="color" v-bind="{
       top: true,
       center: true
     }">
