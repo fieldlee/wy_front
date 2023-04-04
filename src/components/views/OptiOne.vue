@@ -271,7 +271,7 @@
                     <v-spacer></v-spacer>
 
                     <v-btn small class="px-2 ml-1" color="info" variant="text" @click="dialogAdd = true">
-                        <v-icon>mdi-plus</v-icon>
+                        <v-icon color="white">mdi-plus</v-icon>
                     </v-btn>
                 </v-toolbar>
                 <v-divider></v-divider>
@@ -284,6 +284,10 @@
                     </v-btn>
                     <v-btn color="blue-darken-1" variant="text" @click="dialogSelect = false">
                         关闭
+                    </v-btn>
+                    <v-spacer></v-spacer>
+                    <v-btn color="error" align="right" variant="text" @click="delSpec()">
+                        删除
                     </v-btn>
                 </v-card-actions>
             </v-card>
@@ -372,16 +376,14 @@ export default {
             childs_for_select: null,
         },
 
-        headers: [
-            {
+        headers: [{
                 text: '长度',
                 value: 'length'
             },
             {
                 text: '重量',
                 value: 'weight'
-            }
-        ],
+            }],
         selections: [
         ],
         selected: [],
@@ -510,7 +512,8 @@ export default {
                     console.log(response);
                     this.dialogAdd = false;
                     if (response.data.code == 0) {
-
+                        this.getSelections();
+                        this.selected = [];
                         return
                     }
                     this.alertErr(true, response.data.msg);
@@ -518,6 +521,37 @@ export default {
                 })
                 .catch((error) => {
                     this.dialogAdd = false;
+                    this.alertErr(true, error.message);
+                    return false;
+                });
+        },
+        delSpec: function () {
+            let url_del = "http://127.0.0.1:5001/api/del_spec";
+            let config = {
+                headers: {
+                    access_token: $cookies.get("access_token")
+                }
+            };
+            let ids_del = [];
+            this.selected.forEach((item) => {
+                ids_del.push(item.id);
+            })
+            let del_ids = {
+                ids:ids_del
+            };
+            console.log(del_ids);
+            axios.post(url_del, del_ids, config)
+                .then((response) => {
+                    console.log(response);
+                    if (response.data.code == 0) {
+                        this.getSelections();
+                        this.selected = [];
+                        return
+                    }
+                    this.alertErr(true, response.data.msg);
+                    return
+                })
+                .catch((error) => {
                     this.alertErr(true, error.message);
                     return false;
                 });
@@ -622,7 +656,6 @@ export default {
             axios
                 .post(url, dataToSend, config)
                 .then((response) => {
-
                     console.log(response);
                     this.disableCutBtn(false);
                     if (response.data.code == 0) {
