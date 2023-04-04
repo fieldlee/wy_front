@@ -119,7 +119,7 @@
                         </v-col>
                         <v-col cols="4">
                             <v-card-actions class="pl-0 text-right">
-                                <v-btn color="success" :disabled="cutBtnDisabled" @click="sendCutRules()">
+                                <v-btn color="success" :disabled="cutBtnDisabled" @click="sendCutSheet()">
                                     按预定重量切割
                                 </v-btn>
                             </v-card-actions>
@@ -175,13 +175,7 @@
                             </div>
                         </v-col>
                     </v-row>
-                    <v-row style="margin-top:-20px">
-                        <v-col cols="11">
-                            <div id="d3_area">
-                                <svg style="height: 100"></svg>
-                            </div>
-                        </v-col>
-                    </v-row>
+
                 </base-material-card>
             </v-col>
             <v-col cols="1"></v-col>
@@ -191,12 +185,19 @@
             <v-col cols="10" md="10">
                 <base-material-card color="pink" icon="mdi-format-line-style" title="分割方案"
                     text="<span color='white'><b>分割方案</b></span>" class="px-5 py-3">
+                    <v-row style="margin-top:-20px">
+                        <v-col cols="11">
+                            <div id="d3_area">
+                                <svg style="height: 100"></svg>
+                            </div>
+                        </v-col>
+                    </v-row>
                     <v-simple-table>
                         <thead>
                             <tr>
                                 <th width="4%">#</th>
-                                <th><b>宽度</b></th>
-                                <th><b>重量</b></th>
+                                <th><b>有效宽度</b></th>
+                                <th><b>有效重量</b></th>
                                 <th><b>使用率</b></th>
                                 <th><b>损耗宽度</b></th>
                                 <th><b>损耗重量</b></th>
@@ -270,8 +271,8 @@
                     <v-spacer></v-spacer>
 
                     <v-btn small class="px-2 ml-1" color="info" variant="text" @click="dialogAdd = true">
-                            <v-icon>mdi-plus</v-icon>
-                        </v-btn>
+                        <v-icon>mdi-plus</v-icon>
+                    </v-btn>
                 </v-toolbar>
                 <v-divider></v-divider>
                 <v-data-table :headers="headers" :items="selections" hide-default-footer show-select v-model="selected">
@@ -299,7 +300,7 @@
                     <v-col cols="1"></v-col>
                     <v-col cols="10">
                         <v-text-field width="80%" v-model="addSpecInfo.length" label="长度" color="secondary" type="number" />
-                    <v-text-field width="80%" v-model="addSpecInfo.weight" label="重量" color="secondary" type="number" />
+                        <v-text-field width="80%" v-model="addSpecInfo.weight" label="重量" color="secondary" type="number" />
                     </v-col>
                     <v-col cols="1"></v-col>
                 </v-row>
@@ -326,6 +327,7 @@ export default {
         PagesBtn: () => import('../elements/Btn.vue')
     },
     data: () => ({
+        cutRules: false,
         dialogAdd: false,
         dialogSelect: false,
         dialog: false,
@@ -381,7 +383,7 @@ export default {
             }
         ],
         selections: [
-            ],
+        ],
         selected: [],
         addSpecInfo: {
             spec_type: "ParentOne",
@@ -438,8 +440,10 @@ export default {
             let rolls = [];
             this.mode_data.result.data.solutions.forEach((soluton) => {
                 let subs = [];
-                let all_len = Math.round(parseFloat(soluton.un_used)) / 1000;
-                let all_weight = Math.round(parseFloat(soluton.un_used_weight)) / 1000;
+                // let all_len = Math.round(parseFloat(soluton.un_used)) / 1000;
+                // let all_weight = Math.round(parseFloat(soluton.un_used_weight)) / 1000;
+                let all_len = 0.0;
+                let all_weight = 0.0;
                 soluton.subs.forEach((s) => {
                     all_len += Math.round(parseFloat(s)) / 1000;
                     subs.push(Math.round(parseFloat(s)) / 1000);
@@ -501,7 +505,7 @@ export default {
             this.addSpecInfo.length = parseFloat(this.addSpecInfo.length);
             this.addSpecInfo.weight = parseFloat(this.addSpecInfo.weight);
             console.log(this.addSpecInfo);
-            axios.post(url_selection, this.addSpecInfo,config)
+            axios.post(url_selection, this.addSpecInfo, config)
                 .then((response) => {
                     console.log(response);
                     this.dialogAdd = false;
@@ -521,17 +525,33 @@ export default {
         prepareDataToSend1DForRule: function () {
             let newChilds = [];
             this.mode_data.childs.forEach((child) => {
-                console.log("child");
-                console.log(child);
                 newChilds.push({ "width": parseInt(parseFloat(child.width) * 1000) });
             });
 
             let newParents = [];
             this.mode_data.parents.forEach((parent) => {
-                console.log("parent");
-                console.log(parent);
                 let worst_weight = Math.round((parseFloat(this.side) / parseFloat(parent.width)) * (parseFloat(parent.weight) * 1000));
                 newParents.push({ "quantity": parseInt(parent.quantity), "width": parseInt(parseFloat(parent.width) * 1000), "weight": parseInt(parseFloat(parent.weight) * 1000 - worst_weight) });
+            });
+
+            return {
+                child_rolls: newChilds,
+                parent_rolls: newParents,
+                side: parseInt(parseFloat(this.cutWidth) * 1000),
+                out_side: parseInt(parseFloat(this.side) * 1000),
+                seed: Math.round(Math.random() * 10)
+            };
+        },
+        prepareDataToSend1DForWeight: function () {
+            let newChilds = [];
+            this.mode_data.childs.forEach((child) => {
+                newChilds.push({ "quantity": parseInt(child.quantity), "width": parseInt(parseFloat(child.width) * 1000) });
+            });
+
+            let newParents = [];
+            this.mode_data.parents.forEach((parent) => {
+                let worst_weight = Math.round((parseFloat(this.side) / parseFloat(parent.width)) * (parseFloat(parent.weight) * 1000));
+                newParents.push({ "quantity": parseInt(parent.quantity), "width": parseFloat(parent.width) * 1000, "weight": parseInt(parseFloat(parent.weight) * 1000 - worst_weight) });
             });
 
             return {
@@ -545,7 +565,81 @@ export default {
         disableCutBtn: function (disabled) {
             this.cutBtnDisabled = disabled;
         },
+        sendCutSheet: function () {
+            this.mode_data.childs_for_select = [];
+            this.cutRules = false;
+            let parent_width = 0.0;
+            let all_weight = 0.0;
+            for (let index = 0; index < this.mode_data.parents.length; index++) {
+                const element = this.mode_data.parents[index];
+                if (element.weight == null || element.weight == 0) {
+                    this.alertErr(true, "请输入母卷的重量！");
+                    return false;
+                }
+                if (element.width == null || element.width == 0) {
+                    this.alertErr(true, "请输入母卷的长度！");
+                    return false;
+                }
+                if (element.quantity == null || element.quantity == 0) {
+                    this.alertErr(true, "请输入母卷的数量！");
+                    return false;
+                }
+            }
+            for (let index = 0; index < this.mode_data.childs.length; index++) {
+                const element = this.mode_data.childs[index];
+                if (element.weight == null || element.weight == 0.0) {
+                    this.alertErr(true, "请输入子卷预定的重量！");
+                    return false;
+                }
+                if (element.width == null || element.width == 0) {
+                    this.alertErr(true, "请输入子卷的宽度！");
+                    return false;
+                }
+            }
+            this.mode_data.parents.forEach((parent) => {
+                parent_width += parseFloat(parent.width) * parseFloat(parent.quantity);
+                all_weight += parseFloat(parent.weight) * parseFloat(parent.quantity);
+            });
+            for (let i = 0; i < this.mode_data.childs.length; i++) {
+                const child = this.mode_data.childs[i];
+                let s = (parseFloat(child.width) / parseFloat(parent_width)) * all_weight;
+                let n = Math.round(parseFloat(child.weight) / s);
+                child.quantity = n;
+            }
+
+            let url = 'http://127.0.0.1:5001/api/stocks_1d_by_weight';
+
+            this.disableCutBtn(true);
+
+            const dataToSend = this.prepareDataToSend1DForWeight();
+            console.log(dataToSend);
+            let config = {
+                headers: {
+                    access_token: $cookies.get("access_token")
+                }
+            };
+
+            axios
+                .post(url, dataToSend, config)
+                .then((response) => {
+
+                    console.log(response);
+                    this.disableCutBtn(false);
+                    if (response.data.code == 0) {
+                        this.displayResult(response);
+                        return
+                    }
+                    this.alertErr(true, response.data.msg);
+                })
+                .catch((error) => {
+                    console.log(error);
+                    this.disableCutBtn(false);
+                    this.alertErr(true, "连接服务失败，请检查网络");
+                    return false;
+                });
+        },
         sendCutRules: function () {
+            this.cutRules = true;
             this.disableCutBtn(true);
             let dataToSend = this.prepareDataToSend1DForRule();
             console.log(dataToSend);
@@ -600,41 +694,57 @@ export default {
                 this.mode_data.result.statusName =
                     this.mode_data.result.status_name.toLowerCase();
             }
-            let rolls = [];
-            this.mode_data.result.data.solutions.forEach((soluton) => {
-                let subs = [];
-                soluton.solutions.solutions.forEach((item) => {
-                    item.subs.forEach((s) => {
+
+            if (this.cutRules == false) {
+                let rolls = [];
+                this.mode_data.result.data.solutions.forEach((soluton) => {
+                    let subs = [];
+                    // let all_len = Math.round(parseFloat(this.side)) + Math.round(parseFloat(soluton.un_used)) / 1000;
+                    // let all_weight = Math.round(parseFloat(soluton.un_used_weight)) / 1000;
+                    let all_len = 0.0;
+                    let all_weight = 0.0;
+                    soluton.subs.forEach((s) => {
+                        all_len += Math.round(parseFloat(s)) / 1000;
                         subs.push(Math.round(parseFloat(s)) / 1000);
                     });
-                });
-                let subs_weight = [];
 
-                soluton.solutions.solutions.forEach((item) => {
-                    item.sub_weights.forEach((s) => {
+                    let subs_weight = [];
+                    soluton.sub_weights.forEach((s) => {
+                        all_weight += Math.round(parseFloat(s)) / 1000;
                         subs_weight.push(Math.round(parseFloat(s)) / 1000);
                     });
+                    all_weight =  Math.round(parseFloat(all_weight)*1000) / 1000;  //去除小数
+                    // all_len =  Math.round(parseFloat(all_len)*1000) / 1000;  //去除小数
+                    rolls.push([parseFloat(soluton.un_used / 1000), subs, parseFloat(soluton.un_used_weight / 1000), subs_weight,all_len,all_weight]);
                 });
-                rolls.push([parseFloat(soluton.un_used / 1000), subs, parseFloat(soluton.un_used_weight / 1000), subs_weight]);
-            });
 
-            this.mode_data.result.solutions = rolls;
-            // let child_index = 0;
-            // console.log("this.mode_data.result.data.sub_weights");
-            // console.log(this.mode_data.result.data.solutions);
-            // this.mode_data.result.data.solutions.forEach((soluton) => {
-            //     soluton.solutions.solutions.forEach((item) => {
-            //         console.log(item.sub_weights);
-            //         item.sub_weights.forEach((weight) => {
-            //             console.log(weight);
-            //             console.log(child_index);
-            //             console.log(this.mode_data.childs[child_index]);
-            //             this.mode_data.childs[child_index].weight = parseFloat(weight / 1000);
-            //         });
-            //         child_index += 1;
-            //     });
-            // });
+                this.mode_data.result.solutions = rolls;
+                let child_index = 0;
+                this.mode_data.result.data.sub_weights.forEach((weight) => {
+                    this.mode_data.childs[child_index].weight = parseFloat(weight / 1000);
+                    child_index += 1;
+                });
+            } else {
+                let rolls = [];
+                this.mode_data.result.data.solutions.forEach((soluton) => {
+                    let subs = [];
+                    soluton.solutions.solutions.forEach((item) => {
+                        item.subs.forEach((s) => {
+                            subs.push(Math.round(parseFloat(s)) / 1000);
+                        });
+                    });
+                    let subs_weight = [];
 
+                    soluton.solutions.solutions.forEach((item) => {
+                        item.sub_weights.forEach((s) => {
+                            subs_weight.push(Math.round(parseFloat(s)) / 1000);
+                        });
+                    });
+                    rolls.push([parseFloat(soluton.un_used / 1000), subs, parseFloat(soluton.un_used_weight / 1000), subs_weight]);
+                });
+
+                this.mode_data.result.solutions = rolls;
+            }
             this.draw1d();
         },
         sortBigRolls: function (bigRolls) {
@@ -860,7 +970,7 @@ export default {
                     access_token: $cookies.get("access_token")
                 }
             };
-            axios.get(url_selection,config)
+            axios.get(url_selection, config)
                 .then((response) => {
                     console.log(response);
                     if (response.data.code == 0) {
