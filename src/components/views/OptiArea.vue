@@ -50,17 +50,12 @@
           </v-simple-table>
           <v-row>
             <v-col cols="1" />
-            <v-col cols="4">
-              <v-text-field color="secondary" v-model="side" label="边丝宽度" type="number"
-                prepend-icon="mdi-arrow-expand-horizontal">
-              </v-text-field>
-            </v-col>
-            <v-col cols="4">
+            <v-col cols="7">
               <v-text-field color="secondary" v-model="cutWidth" label="切割宽度" type="number"
                 prepend-icon="mdi-zip-box-outline">
               </v-text-field>
             </v-col>
-            <v-col cols="3">
+            <v-col cols="4">
               <v-card-actions class="pl-0 text-right">
                 <v-btn color="success" min-width="100" max-width="30" @click="selectSpec()">
                   选择常用规格
@@ -90,7 +85,7 @@
 
             <tbody>
               <tr v-for="(child, index) in mode_data.childs" v-bind:key="index">
-                <td :style="getColor(child.color)" >{{ index + 1 }}</td>
+                <td :style="getColor(child.color)">{{ index + 1 }}</td>
                 <td>
                   <v-text-field v-model="child.length" color="secondary" type="number" max-width="10" />
                 </td>
@@ -143,7 +138,7 @@
       </v-col>
       <v-col cols="1"></v-col>
     </v-row>
-    <!---待选方案-->>
+    <!---待选方案-->
     <v-row style="margin-top:-40px" v-if="mode_data.childs_for_select && mode_data.childs_for_select.length > 0">
       <v-col cols="1"></v-col>
       <v-col cols="10" md="10">
@@ -207,35 +202,35 @@
             <thead>
               <tr>
                 <th width="4%">#</th>
-                <th><b>有效宽度</b></th>
+                <th><b>有效面积</b></th>
                 <th><b>有效重量</b></th>
                 <th><b>使用率</b></th>
-                <th><b>损耗宽度</b></th>
+                <th><b>损耗面积</b></th>
                 <th><b>损耗重量</b></th>
                 <th width="50%"><b>明细(规格*数量/重量)</b></th>
               </tr>
             </thead>
 
             <tbody v-if="mode_data.result">
-              <tr v-for="(bigRoll, index) in mode_data.result.solutions" v-bind:key="index">
+              <tr v-for="(bigRoll, index) in mode_data.result.data.solutions" v-bind:key="index">
                 <td>{{ index + 1 }}</td>
                 <td>
-                  {{ bigRoll[4] }}
+                  {{ bigRoll.used_area }}
                 </td>
                 <td>
-                  {{ bigRoll[5] }}
+                  {{ bigRoll.used_weight }}
                 </td>
                 <td>
-                  {{  }}
+                  {{ getPercentageUtilization(parseFloat(bigRoll.unused_area), parseFloat(bigRoll.used_area)) }}%
                 </td>
                 <td>
-                  {{ bigRoll[0] }}
+                  {{ bigRoll.unused_area }}
                 </td>
                 <td>
-                  {{ bigRoll[2] }}
+                  {{ bigRoll.unused_weight }}
                 </td>
                 <td>
-                  {{ bigRoll[3] }}
+                  {{ bigRoll.subs_list.join(",") }}
                 </td>
               </tr>
             </tbody>
@@ -253,8 +248,23 @@
             </v-col>
           </v-row>
           <v-row style="margin-top:-20px">
-            <v-col cols="11">
-              <div id="d3_area">
+            <v-col cols="3">
+              <div id="d3_area_1">
+                <svg style="height: 300"></svg>
+              </div>
+            </v-col>
+            <v-col cols="3">
+              <div id="d3_area_2">
+                <svg style="height: 300"></svg>
+              </div>
+            </v-col>
+            <v-col cols="3">
+              <div id="d3_area_3">
+                <svg style="height: 300"></svg>
+              </div>
+            </v-col>
+            <v-col cols="3">
+              <div id="d3_area_4">
                 <svg style="height: 300"></svg>
               </div>
             </v-col>
@@ -262,7 +272,6 @@
         </base-material-card>
       </v-col>
       <v-col cols="1"></v-col>
-
     </v-row>
 
     <!---对话框-->
@@ -361,9 +370,9 @@ export default {
     cutBtnDisabled: false,
     mode_data: {
       childs: [
-        { length: 120, width: 120, quantity: 0, weight: 0 ,color:""},
-        { length: 100, width: 97, quantity: 0, weight: 0 ,color:""},
-        { length: 80, width: 87, quantity: 0, weight: 0 ,color:""},
+        { length: 120, width: 120, quantity: 0, weight: 0, color: "" },
+        { length: 100, width: 97, quantity: 0, weight: 0, color: "" },
+        { length: 80, width: 87, quantity: 0, weight: 0, color: "" },
       ],
       parents: [{ length: 1200, width: 1200, quantity: 1, weight: 6 }],
       result: null,
@@ -389,28 +398,28 @@ export default {
       value: 'weight'
     }],
     colors: [
-            "#FF5722", // Sun Flower
-            "#E65100", // Torquise
-            "#FFC107", // Orange
-            "#388E3C", // Emerald
-            "#DCE775", // Nephritis
-            "#0277BD", // Carrot
-            "#80D8FF", // Pumpkin
-            "#0288D1", // Green Sea
-            "#26A69A", // Peter River
-            "#26C6DA", // Belize Hole
-            "#651FFF", // Alizarin
-            "#7E57C2", // Pomegranate
-            "#5C6BC0", // Amethyst
-            "#8e44ad", // Wisteria
-            "#EF5350", // Clouds
-            '#8E24AA', // Silver
-            '#AA00FF', // Concrete <- Clouds & Silver are close
-            '#2196F3', // West Asphalt <- don't use because it is very close to Midnight blue
-            '#1E88E5', // Midnight Blue <- use for wasted part
-            '#795548',
-            '#FF9E80',
-        ],
+      "#FF5722", // Sun Flower
+      "#E65100", // Torquise
+      "#FFC107", // Orange
+      "#388E3C", // Emerald
+      "#DCE775", // Nephritis
+      "#0277BD", // Carrot
+      "#80D8FF", // Pumpkin
+      "#0288D1", // Green Sea
+      "#26A69A", // Peter River
+      "#26C6DA", // Belize Hole
+      "#651FFF", // Alizarin
+      "#7E57C2", // Pomegranate
+      "#5C6BC0", // Amethyst
+      "#8e44ad", // Wisteria
+      "#EF5350", // Clouds
+      '#8E24AA', // Silver
+      '#AA00FF', // Concrete <- Clouds & Silver are close
+      '#2196F3', // West Asphalt <- don't use because it is very close to Midnight blue
+      '#1E88E5', // Midnight Blue <- use for wasted part
+      '#795548',
+      '#FF9E80',
+    ],
   }),
   created() {
     this.$vuetify.theme.dark = false
@@ -419,19 +428,25 @@ export default {
     this.$vuetify.theme.dark = true
   },
   methods: {
+    getPercentageUtilization: function (unused, used) {
+
+      let percentage = (used * 100) / (unused + used);
+
+      percentage *= 100; // preserve 2 digits after decimal
+      percentage = Math.round(percentage); // remove the decimal part
+      percentage /= 100; // back to original percentage
+
+      return percentage;
+    },
     getColor: function (color) {
       return { backgroundColor: `${color}` };
     },
     disableCutBtn: function (disabled) {
       this.cutBtnDisabled = disabled;
     },
-    alertErr: function (error, msg) {
+    alertErr: function (color, msg) {
       this.snackbar = true;
-      if (error === true) {
-        this.color = 'error';
-      } else {
-        this.color = 'info';
-      }
+      this.color = color;
       this.snackbarMsg = msg;
     },
     hoverPlan(index) {
@@ -463,12 +478,12 @@ export default {
             this.selected = [];
             return
           }
-          this.alertErr(true, response.data.msg);
+          this.alertErr("error", response.data.msg);
           return
         })
         .catch((error) => {
           this.dialogAdd = false;
-          this.alertErr(true, error.message);
+          this.alertErr("error", error.message);
           return false;
         });
     },
@@ -498,11 +513,11 @@ export default {
             response.data.data.forEach((data) => this.selections.push(data))
             return
           }
-          this.alertErr(true, response.data.msg);
+          this.alertErr("error", response.data.msg);
           return
         })
         .catch((error) => {
-          this.alertErr(true, error.message);
+          this.alertErr("error", error.message);
           return false;
         });
     },
@@ -543,12 +558,12 @@ export default {
       });
 
       if (subsArea >= allArea) {
-        this.alertErr(true, "需要切割的数量过大，超过母板的总面积，请修改需要切割重量或数量！");
+        this.alertErr("error", "需要切割的数量过大，超过母板的总面积，请修改需要切割重量或数量！");
         return false;
       }
 
       if (subsArea >= (allArea * 0.95)) {
-        this.alertErr(true, "需要切割的数量过大，超过母板的总面积的95%，有可能会没有最优解！");
+        this.alertErr("warning", "需要切割的数量过大，超过母板的总面积的95%，有可能会没有最优解！");
       }
 
       return {
@@ -564,41 +579,41 @@ export default {
       for (let index = 0; index < this.mode_data.parents.length; index++) {
         const element = this.mode_data.parents[index];
         if (element.length == null || element.length == 0) {
-          this.alertErr(true, "请输入母卷的长度！");
+          this.alertErr("error", "请输入母卷的长度！");
           return false;
         }
         if (element.width == null || element.width == 0) {
-          this.alertErr(true, "请输入母卷的宽度！");
+          this.alertErr("error", "请输入母卷的宽度！");
           return false;
         }
         if (element.weight == null || element.weight == 0) {
-          this.alertErr(true, "请输入母卷的重量！");
+          this.alertErr("error", "请输入母卷的重量！");
           return false;
         }
         if (element.quantity == null || element.quantity == 0) {
-          this.alertErr(true, "请输入母卷的数量！");
+          this.alertErr("error", "请输入母卷的数量！");
           return false;
         }
       }
       for (let index = 0; index < this.mode_data.childs.length; index++) {
         const element = this.mode_data.childs[index];
         if (element.length == null || element.length == 0) {
-          this.alertErr(true, "请输入子卷的长度！");
+          this.alertErr("error", "请输入子卷的长度！");
           return false;
         }
         if (element.width == null || element.width == 0) {
-          this.alertErr(true, "请输入子卷的宽度！");
+          this.alertErr("error", "请输入子卷的宽度！");
           return false;
         }
         if (typeCut == "weight") {
           if (element.weight == null || element.weight == 0) {
-            this.alertErr(true, "请输入子卷的重量！");
+            this.alertErr("error", "请输入子卷的重量！");
             return false;
           }
         }
         if (typeCut == "quantity") {
           if (element.quantity == null || element.quantity == 0) {
-            this.alertErr(true, "请输入子卷数量！");
+            this.alertErr("error", "请输入子卷数量！");
             return false;
           }
         }
@@ -615,28 +630,31 @@ export default {
           access_token: $cookies.get("access_token")
         }
       };
+      this.dialog = true;
       axios
         .post(url, dataToSend, config)
         .then((response) => {
           console.log(response);
+          this.dialog = false;
           this.disableCutBtn(false);
           if (response.data.code == 0) {
             this.displayResult(response);
             return
           }
-          this.alertErr(true, response.data.msg);
+          this.alertErr("error", response.data.msg);
         })
         .catch((error) => {
+          this.dialog = false;
           console.log(error);
           this.disableCutBtn(false);
-          this.alertErr(true, "连接服务失败，请检查网络");
+          this.alertErr("error", "连接服务失败，请检查网络");
           return false;
         });
     },
     displayResult: function (response) {
       if (response.data.data && response.data.data.status_name) {
         if (response.data.data.status_name == "Error") {
-          this.alertErr(true, "服务计算超出母卷的面积，请修改子卷重量或数量后重试！");
+          this.alertErr("error", "服务计算超出母卷的面积，请修改子卷重量或数量后重试！");
           return false;
         }
       }
@@ -650,32 +668,62 @@ export default {
       // if (this.cutRules == false) {
 
       // } else {
-        let rolls = [];
-        this.mode_data.result.data.solutions.forEach((soluton) => {
-          let subs = [];
-
-          soluton.subs.forEach((item) => {
-            console.log(item);
-            let tmpItem = {
-              x1:Math.round(parseFloat(item.x))/1000,
-              y1:Math.round(parseFloat(item.y))/1000,
-              x2:(Math.round(parseFloat(item.x))/1000)+(Math.round(parseFloat(item.width))/1000),
-              y2:(Math.round(parseFloat(item.y))/1000)+(Math.round(parseFloat(item.length))/1000),
+      let rolls = [];
+      this.mode_data.result.data.solutions.forEach((soluton) => {
+        let subs = [];
+        let subs_list = [];
+        soluton.used_area = Math.round(soluton.used_area) / 1000 / 1000;
+        soluton.used_weight = Math.round(soluton.used_weight) / 1000;
+        soluton.unused_area = Math.round(soluton.unused_area) / 1000 / 1000;
+        soluton.unused_weight = Math.round(soluton.unused_weight) / 1000;
+        soluton.subs.forEach((item) => {
+          let has = false;
+          subs_list.forEach((sub) => {
+            if (sub.area == (Math.round(parseFloat(item.width)) / 1000) * (Math.round(parseFloat(item.length)) / 1000)) {
+              let w = ((Math.round(parseFloat(item.width)) / 1000) * (Math.round(parseFloat(item.length)) / 1000) / soluton.used_area) * soluton.used_weight;
+              sub.number += 1;
+              sub.weight += Math.round(w * 1000) / 1000;
+              has = true;
             }
-            subs.push(tmpItem);
           });
 
-          rolls.push(subs);
+          if (has == false) {
+            let w = ((Math.round(parseFloat(item.width)) / 1000) * (Math.round(parseFloat(item.length)) / 1000) / soluton.used_area) * soluton.used_weight;
+            subs_list.push({
+              "area": (Math.round(parseFloat(item.width)) / 1000) * (Math.round(parseFloat(item.length)) / 1000),
+              "key": (Math.round(parseFloat(item.length)) / 1000) + "X" + (Math.round(parseFloat(item.width)) / 1000),
+              "number": 1,
+              "weight": Math.round(w * 1000) / 1000
+            });
+          }
+
+          let tmpItem = {
+            x1: Math.round(parseFloat(item.x)) / 1000,
+            y1: Math.round(parseFloat(item.y)) / 1000,
+            x2: (Math.round(parseFloat(item.x)) / 1000) + (Math.round(parseFloat(item.width)) / 1000),
+            y2: (Math.round(parseFloat(item.y)) / 1000) + (Math.round(parseFloat(item.length)) / 1000),
+          }
+          subs.push(tmpItem);
         });
 
-        this.mode_data.result.solutions = rolls;
+        let list_str = [];
+        subs_list.forEach((s) => {
+          list_str.push(s.key + "*" + s.number + "/" + Math.round(parseFloat(s.weight) * 1000) / 1000);
+        });
+
+        soluton.subs_list = list_str;
+
+        rolls.push(subs);
+      });
+
+      this.mode_data.result.solutions = rolls;
       // }
       this.draw2d();
     },
     draw2d: function () {
       // clear old drawing
       this.clearTheDrawing();
-      this.mode_data.childs.forEach((item)=>{
+      this.mode_data.childs.forEach((item) => {
         let j = Math.round(Math.random() * 20)
         item.color = this.colors[j];
       });
@@ -700,30 +748,35 @@ export default {
           let y2 = parseFloat(rect.y2);
           let tmpColor = "";
           this.mode_data.childs.forEach((item) => {
-            if (((parseInt(item.width) == parseInt(y2-y1)) && (parseInt(item.length) == parseInt(x2-x1)))
-            || ((parseInt(item.width) == parseInt(x2-x1)) && (parseInt(item.length) == parseInt(y2-y1)))){
-              if (tmpColor == ""){
+            if (((parseInt(item.width) == parseInt(y2 - y1)) && (parseInt(item.length) == parseInt(x2 - x1)))
+              || ((parseInt(item.width) == parseInt(x2 - x1)) && (parseInt(item.length) == parseInt(y2 - y1)))) {
+              if (tmpColor == "") {
                 tmpColor = item.color;
               }
             }
           });
-          this.drawRect(x1, y1, x2, y2, tmpColor);
+          this.drawRect(x1, y1, x2, y2, tmpColor, i + 1);
         }
-        break;
+
       }
     },
     clearTheDrawing: function () {
-      d3.selectAll("#d3_area svg > *").remove();
-      d3.select("#d3_area svg").style("border", "");
+      d3.selectAll("#d3_area_1 svg > *").remove();
+      d3.select("#d3_area_1 svg").style("border", "");
+      d3.selectAll("#d3_area_2 svg > *").remove();
+      d3.select("#d3_area_2 svg").style("border", "");
+      d3.selectAll("#d3_area_3 svg > *").remove();
+      d3.select("#d3_area_3 svg").style("border", "");
+      d3.selectAll("#d3_area_4 svg > *").remove();
+      d3.select("#d3_area_4 svg").style("border", "");
     },
-    drawRect: function (x1, y1, x2, y2, color) {
+    drawRect: function (x1, y1, x2, y2, color, index) {
 
-      console.log("Drawing Rect... Color: ", color);
-      console.log("Draw rect", x1, y1, x2, y2);
+      // console.log("Drawing Rect... Color: ", color);
+      // console.log("Draw rect", x1, y1, x2, y2);
 
       const width = Math.abs(parseFloat(x2) - parseFloat(x1));
       const height = Math.abs(parseFloat(y2) - parseFloat(y1));
-
 
       // const rectTitle = `${width} x ${height}`;
 
@@ -735,17 +788,18 @@ export default {
 
       let yScale = d3.scaleLinear().domain([0, parentHeight]).range([0, 300]); // display in 300 pixels height?
 
-      console.log(
-        "D3 Scaled rect",
-        xScale(x1),
-        yScale(y1),
-        xScale(width),
-        yScale(height)
-      );
+      // console.log(
+      //   "D3 Scaled rect",
+      //   xScale(x1),
+      //   yScale(y1),
+      //   xScale(width),
+      //   yScale(height)
+      // );
 
       // create svg element:
-      let svg = d3.select("#d3_area svg");
-
+      let d3_id = "#d3_area_" + index + " svg";
+      let svg = d3.select(d3_id);
+      console.log(svg);
       var margin = { top: 0, right: 0, bottom: 0, left: 0 };
 
       let svgWidth = 300 - margin.left - margin.right;
