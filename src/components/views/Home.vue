@@ -229,7 +229,7 @@ export default {
         best: true,
         heading: '年度会员',
         icon: 'mdi-domain',
-        title: '799',
+        title: '899',
         text: '强烈推荐'
       },
       {

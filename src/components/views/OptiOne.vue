@@ -4,7 +4,7 @@
             <v-col cols="1"></v-col>
             <v-col cols="5" md="5">
                 <base-material-card color="pink" icon="mdi-bullseye"
-                    title="每个输入项单位保持一致，支持精确3位小数。<br/>”边丝宽度“：卷两边的卡槽损耗的宽度。<br/>”切割宽度“：切割刀片锯片损耗宽度。（根据情况设置，没有的填”0“）"
+                    title="每个输入项单位保持一致，支持精确3位小数。<br/>”边丝宽度“：卷两边的卡槽损耗的宽度。（根据情况设置，没有的填”0“）"
                     :isDesc=true text="<span color='white'><b>母卷设置</b></span>" class="px-6 py-3">
                     <v-simple-table>
                         <thead>
@@ -47,16 +47,16 @@
                     </v-simple-table>
                     <v-row>
                         <v-col cols="1" />
-                        <v-col cols="4">
+                        <v-col cols="8">
                             <v-text-field color="secondary" v-model="side" label="边丝宽度" type="number"
                                 prepend-icon="mdi-arrow-expand-horizontal">
                             </v-text-field>
                         </v-col>
-                        <v-col cols="4">
+                        <!-- <v-col cols="4">
                             <v-text-field color="secondary" v-model="cutWidth" label="切割宽度" type="number"
                                 prepend-icon="mdi-zip-box-outline">
                             </v-text-field>
-                        </v-col>
+                        </v-col> -->
                         <v-col cols="3">
                             <v-card-actions class="pl-0 text-right">
                                 <v-btn color="success" min-width="100" max-width="30" @click="selectSpec()">
@@ -185,13 +185,7 @@
             <v-col cols="10" md="10">
                 <base-material-card color="pink" icon="mdi-format-line-style" title="分割方案"
                     text="<span color='white'><b>分割方案</b></span>" class="px-5 py-3">
-                    <v-row style="margin-top:-20px">
-                        <v-col cols="11">
-                            <div id="d3_area">
-                                <svg style="height: 100"></svg>
-                            </div>
-                        </v-col>
-                    </v-row>
+
                     <v-simple-table>
                         <thead>
                             <tr>
@@ -239,6 +233,13 @@
                             </v-card-actions>
                         </v-col>
                         <v-col cols="4">
+                        </v-col>
+                    </v-row>
+                    <v-row style="margin-top:-20px">
+                        <v-col cols="11">
+                            <div id="d3_area">
+                                <svg style="height: 100"></svg>
+                            </div>
                         </v-col>
                     </v-row>
                 </base-material-card>
@@ -442,21 +443,15 @@ export default {
             let rolls = [];
             this.mode_data.result.data.solutions.forEach((soluton) => {
                 let subs = [];
-                // let all_len = Math.round(parseFloat(soluton.un_used)) / 1000;
-                // let all_weight = Math.round(parseFloat(soluton.un_used_weight)) / 1000;
-                let all_len = 0.0;
-                let all_weight = 0.0;
                 soluton.subs.forEach((s) => {
-                    all_len += Math.round(parseFloat(s)) / 1000;
                     subs.push(Math.round(parseFloat(s)) / 1000);
                 });
-                all_len += parseFloat(this.side);  // add side lenght
                 let subs_weight = [];
                 soluton.sub_weights.forEach((s) => {
-                    all_weight += Math.round(parseFloat(s)) / 1000;
                     subs_weight.push(Math.round(parseFloat(s)) / 1000);
                 });
-                all_weight = Math.round(all_weight * 1000) / 1000;
+                let all_len = Math.round(parseFloat(soluton.parent_length))/1000;
+                let all_weight = Math.round(parseFloat(soluton.parent_weight))/1000;
                 rolls.push([parseFloat(soluton.un_used / 1000), subs, parseFloat(soluton.un_used_weight / 1000), subs_weight, all_len, all_weight]);
             });
 
@@ -506,10 +501,8 @@ export default {
             };
             this.addSpecInfo.length = parseFloat(this.addSpecInfo.length);
             this.addSpecInfo.weight = parseFloat(this.addSpecInfo.weight);
-            console.log(this.addSpecInfo);
             axios.post(url_selection, this.addSpecInfo, config)
                 .then((response) => {
-                    console.log(response);
                     this.dialogAdd = false;
                     if (response.data.code == 0) {
                         this.getSelections();
@@ -685,6 +678,7 @@ export default {
             this.dialog = true;
             axios.post(url, dataToSend, config)
                 .then((response) => {
+                    console.log(response);
                     this.disableCutBtn(false);
                     this.dialog = false;
                     if (response.data.code == 0) {
@@ -732,22 +726,16 @@ export default {
                 let rolls = [];
                 this.mode_data.result.data.solutions.forEach((soluton) => {
                     let subs = [];
-                    // let all_len = Math.round(parseFloat(this.side)) + Math.round(parseFloat(soluton.un_used)) / 1000;
-                    // let all_weight = Math.round(parseFloat(soluton.un_used_weight)) / 1000;
-                    let all_len = 0.0;
-                    let all_weight = 0.0;
                     soluton.subs.forEach((s) => {
-                        all_len += Math.round(parseFloat(s)) / 1000;
                         subs.push(Math.round(parseFloat(s)) / 1000);
                     });
 
                     let subs_weight = [];
                     soluton.sub_weights.forEach((s) => {
-                        all_weight += Math.round(parseFloat(s)) / 1000;
                         subs_weight.push(Math.round(parseFloat(s)) / 1000);
                     });
-                    all_weight =  Math.round(parseFloat(all_weight)*1000) / 1000;  //去除小数
-                    // all_len =  Math.round(parseFloat(all_len)*1000) / 1000;  //去除小数
+                    let all_len = Math.round(parseFloat(soluton.parent_length))/1000;
+                    let all_weight = Math.round(parseFloat(soluton.parent_weight))/1000;
                     rolls.push([parseFloat(soluton.un_used / 1000), subs, parseFloat(soluton.un_used_weight / 1000), subs_weight,all_len,all_weight]);
                 });
 

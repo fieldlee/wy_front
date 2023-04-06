@@ -1,460 +1,798 @@
 <template>
-    <v-container
-      id="optiarea-forms"
-      fluid
-      tag="section"
-    >
-      <v-row>
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <base-material-card
-            color="success"
-            icon="mdi-email"
-            title="Stacked Form"
-            class="px-5 py-3"
-          >
-            <v-form class="mt-5">
-              <v-text-field label="Email Address" />
+  <v-container id="optiarea-forms" fluid tag="section">
+    <v-row>
+      <v-col cols="1"></v-col>
+      <v-col cols="5" md="5">
+        <base-material-card color="pink" icon="mdi-bullseye"
+          title="每个输入项单位保持一致，支持精确3位小数。<br/>”边丝宽度“：卷两边的卡槽损耗的宽度。<br/>”切割宽度“：切割刀片锯片损耗宽度。（根据情况设置，没有的填”0“）" :isDesc=true
+          text="<span color='white'><b>母卷设置</b></span>" class="px-6 py-3">
+          <v-simple-table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>长度</th>
+                <th>宽度</th>
+                <th>数量</th>
+                <th>重量</th>
+                <th class="text-right" width="20%">
+                  增加/减少
+                </th>
+              </tr>
+            </thead>
 
-              <v-text-field
-                type="password"
-                label="Password"
-                class="pt-0"
-              />
+            <tbody>
+              <tr v-for="(parent, index) in mode_data.parents" v-bind:key="index">
+                <td>{{ index + 1 }}</td>
+                <td>
+                  <v-text-field v-model="parent.length" color="secondary" max-width="50" type="number" />
+                </td>
+                <td>
+                  <v-text-field v-model="parent.width" color="secondary" max-width="50" type="number" />
+                </td>
+                <td>
+                  <v-text-field v-model="parent.quantity" color="secondary" max-width="50" type="number" />
+                </td>
+                <td>
+                  <v-text-field v-model="parent.weight" color="secondary" max-width="50" type="number" />
+                </td>
+                <td class="text-left">
+                  <v-btn class="px-2 ml-1" color="info" min-width="0" small @click="addRowToParents()">
+                    +
+                  </v-btn>
+                  <v-btn class="px-2 ml-1" color="error" v-if="index != 0" min-width="0" small
+                    @click="removeRowToParents(index)">
+                    -
+                  </v-btn>
+                </td>
+              </tr>
+            </tbody>
 
-              <v-checkbox
-                label="Subscribe to newsletter"
-                class="mt-0"
-              />
-            </v-form>
+          </v-simple-table>
+          <v-row>
+            <v-col cols="1" />
+            <v-col cols="4">
+              <v-text-field color="secondary" v-model="side" label="边丝宽度" type="number"
+                prepend-icon="mdi-arrow-expand-horizontal">
+              </v-text-field>
+            </v-col>
+            <v-col cols="4">
+              <v-text-field color="secondary" v-model="cutWidth" label="切割宽度" type="number"
+                prepend-icon="mdi-zip-box-outline">
+              </v-text-field>
+            </v-col>
+            <v-col cols="3">
+              <v-card-actions class="pl-0 text-right">
+                <v-btn color="success" min-width="100" max-width="30" @click="selectSpec()">
+                  选择常用规格
+                </v-btn>
+              </v-card-actions>
+            </v-col>
+          </v-row>
+        </base-material-card>
+      </v-col>
+      <v-col cols="5" md="5">
+        <base-material-card color="success" icon="mdi-format-line-weight"
+          title="每个输入项单位保持一致，支持精确3位小数。<br/>”按长度切割“：不需要输入重量和数量，按照长度计算多个待选方案。<br/>”按重量切割“：根据重量计算每项数量后计算最佳的方案。" :isDesc=true
+          text="<span color='white'><b>分条设置</b></span>" class="px-6 py-3">
+          <v-simple-table>
+            <thead>
+              <tr>
+                <th width="4%">#</th>
+                <th>长度</th>
+                <th>宽度</th>
+                <th>预定重量</th>
+                <th>数量</th>
+                <th class="text-right" width="20%">
+                  增加/减少
+                </th>
+              </tr>
+            </thead>
 
-            <v-card-actions class="pl-0">
-              <v-btn
-                color="success"
-                min-width="100"
-              >
-                Submit
-              </v-btn>
-            </v-card-actions>
-          </base-material-card>
-        </v-col>
+            <tbody>
+              <tr v-for="(child, index) in mode_data.childs" v-bind:key="index">
+                <td :style="getColor(child.color)" >{{ index + 1 }}</td>
+                <td>
+                  <v-text-field v-model="child.length" color="secondary" type="number" max-width="10" />
+                </td>
+                <td>
+                  <v-text-field v-model="child.width" color="secondary" type="number" max-width="10" />
+                </td>
+                <td>
+                  <v-text-field v-model="child.weight" color="secondary" type="number" max-width="50" />
+                </td>
+                <td>
+                  <v-text-field v-model="child.quantity" @change="" color="secondary" type="number" max-width="50" />
+                </td>
+                <td class="text-left">
+                  <v-btn class="px-2 ml-1" color="info" min-width="0" small @click="addRowToChilds()">
+                    +
+                  </v-btn>
+                  <v-btn class="px-2 ml-1" color="error" v-if="index != 0" min-width="0" small
+                    @click="removeRowToChilds(index)">
+                    -
+                  </v-btn>
+                </td>
+              </tr>
+            </tbody>
+          </v-simple-table>
+          <v-row class="text-right">
+            <v-col cols="3"></v-col>
+            <v-col cols="3">
+              <v-card-actions class="pl-0 text-right">
+                <v-btn color="success" :disabled="cutBtnDisabled" @click="sendCutRules()">
+                  按长度切割
+                </v-btn>
+              </v-card-actions>
+            </v-col>
+            <v-col cols="3">
+              <v-card-actions class="pl-0 text-right">
+                <v-btn color="success" :disabled="cutBtnDisabled" @click="sendCutSheet('weight')">
+                  按重量切割
+                </v-btn>
+              </v-card-actions>
+            </v-col>
+            <v-col cols="3">
+              <v-card-actions class="pl-0 text-right">
+                <v-btn color="success" :disabled="cutBtnDisabled" @click="sendCutSheet('quantity')">
+                  按数量切割
+                </v-btn>
+              </v-card-actions>
+            </v-col>
+          </v-row>
+        </base-material-card>
+      </v-col>
+      <v-col cols="1"></v-col>
+    </v-row>
+    <!---待选方案-->>
+    <v-row style="margin-top:-40px" v-if="mode_data.childs_for_select && mode_data.childs_for_select.length > 0">
+      <v-col cols="1"></v-col>
+      <v-col cols="10" md="10">
+        <base-material-card color="pink" icon="mdi-format-line-style" text="<span color='white'><b>待选方案</b></span>"
+          class="px-5 py-3">
+          <v-row>
+            <v-col cols="2" v-for="(child_rolls, index) in mode_data.childs_for_select" v-bind:key="index">
+              <v-simple-table class="theme--dark" dense @mouseover="hoverPlan(i)">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>长度</th>
+                    <th>宽度</th>
+                    <th>数量</th>
+                  </tr>
+                </thead>
+                <thead>
+                  <tr class="border">
+                    <td>#</td>
+                    <td> 损耗</td>
+                    <td>
+                      {{
+                        child_rolls.worstWidth
+                      }}
+                    </td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(child, i) in child_rolls.sub_child_solver" v-bind:key="i">
+                    <td>{{ i + 1 }}</td>
+                    <td>
+                      {{ child.width }}
+                    </td>
+                    <td>
+                      {{ child.quantity }}
+                    </td>
+                  </tr>
+                </tbody>
+              </v-simple-table>
+              <div class="text-center" style="margin-top:-10px; z-index: 1;">
+                <pages-btn :color="!child_rolls.select ? 'info' : 'success'" small depressed @click="selectdRow(index)"
+                  min-width="50">
+                  {{ '选我' }}
+                </pages-btn>
+              </div>
+            </v-col>
+          </v-row>
 
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <base-material-card
-            color="success"
-            icon="mdi-email-outline"
-            title="Horizontal Form"
-            class="px-5 py-3"
-          >
-            <v-form>
-              <v-container fluid>
-                <v-row
-                  align="center"
-                  no-wrap
-                >
-                  <v-col
-                    cols="3"
-                    class="text-right grey--text"
-                  >
-                    Email
-                  </v-col>
+        </base-material-card>
+      </v-col>
+      <v-col cols="1"></v-col>
+    </v-row>
+    <!---切割方案-->
+    <v-row style="margin-top:-40px">
+      <v-col cols="1"></v-col>
+      <v-col cols="10" md="10">
+        <base-material-card color="pink" icon="mdi-format-line-style" title="分割方案"
+          text="<span color='white'><b>分割方案</b></span>" class="px-5 py-3">
 
-                  <v-col>
-                    <v-text-field />
-                  </v-col>
-                </v-row>
+          <v-simple-table>
+            <thead>
+              <tr>
+                <th width="4%">#</th>
+                <th><b>有效宽度</b></th>
+                <th><b>有效重量</b></th>
+                <th><b>使用率</b></th>
+                <th><b>损耗宽度</b></th>
+                <th><b>损耗重量</b></th>
+                <th width="50%"><b>明细(规格*数量/重量)</b></th>
+              </tr>
+            </thead>
 
-                <v-row
-                  align="center"
-                  no-wrap
-                >
-                  <v-col
-                    class="text-right grey--text"
-                    cols="3"
-                  >
-                    Password
-                  </v-col>
+            <tbody v-if="mode_data.result">
+              <tr v-for="(bigRoll, index) in mode_data.result.solutions" v-bind:key="index">
+                <td>{{ index + 1 }}</td>
+                <td>
+                  {{ bigRoll[4] }}
+                </td>
+                <td>
+                  {{ bigRoll[5] }}
+                </td>
+                <td>
+                  {{  }}
+                </td>
+                <td>
+                  {{ bigRoll[0] }}
+                </td>
+                <td>
+                  {{ bigRoll[2] }}
+                </td>
+                <td>
+                  {{ bigRoll[3] }}
+                </td>
+              </tr>
+            </tbody>
+          </v-simple-table>
+          <v-row class="text-right">
+            <v-col cols="5"></v-col>
+            <v-col cols="3">
+              <v-card-actions class="pl-0 text-right">
+                <v-btn color="success" :disabled="cutBtnDisabled" @click="downloadCsv()">
+                  下载
+                </v-btn>
+              </v-card-actions>
+            </v-col>
+            <v-col cols="4">
+            </v-col>
+          </v-row>
+          <v-row style="margin-top:-20px">
+            <v-col cols="11">
+              <div id="d3_area">
+                <svg style="height: 300"></svg>
+              </div>
+            </v-col>
+          </v-row>
+        </base-material-card>
+      </v-col>
+      <v-col cols="1"></v-col>
 
-                  <v-col>
-                    <v-text-field
-                      type="password"
-                      class="pt-0"
-                    />
-                  </v-col>
-                </v-row>
+    </v-row>
 
-                <v-row
-                  align="center"
-                  no-wrap
-                  no-gutters
-                >
-                  <v-col cols="3" />
+    <!---对话框-->
+    <base-material-snackbar v-model="snackbar" :timeout="2000" :type="color" v-bind="{
+      top: true,
+      center: true
+    }">
+      <span class="font-weight-bold">{{ snackbarMsg }}</span>
+    </base-material-snackbar>
+    <!---loading-->
+    <v-dialog v-model="dialog" :scrim="false" persistent width="auto">
+      <v-card color="success">
+        <v-card-text>
+          <span class="white--text font-weight-bold"><b>请稍后，计算中...</b></span>
+          <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
 
-                  <v-col>
-                    <v-checkbox
-                      label="Subscribe to newsletter"
-                      class="mt-0"
-                    />
-                  </v-col>
-                </v-row>
-              </v-container>
-            </v-form>
+    <!---选择规格-->
+    <v-dialog v-model="dialogSelect" scrollable width="400">
+      <v-card>
+        <v-toolbar color="info">
+          <v-toolbar-title>选择常用规格</v-toolbar-title>
+          <v-spacer></v-spacer>
 
-            <v-card-actions>
-              <v-btn
-                color="success"
-                min-width="100"
-                class="pl-0"
-              >
-                Sign In
-              </v-btn>
-            </v-card-actions>
-          </base-material-card>
-        </v-col>
+          <v-btn small class="px-2 ml-1" color="info" variant="text" @click="dialogAdd = true">
+            <v-icon color="white">mdi-plus</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-divider></v-divider>
+        <v-data-table :headers="headers" :items="selections" hide-default-footer show-select v-model="selected">
+        </v-data-table>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-btn color="success" variant="text" @click="selectedSpec()">
+            确定
+          </v-btn>
+          <v-btn color="blue-darken-1" variant="text" @click="dialogSelect = false">
+            关闭
+          </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn color="error" align="right" variant="text" @click="delSpec()">
+            删除
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!---添加规格-->
+    <v-dialog v-model="dialogAdd" scrollable width="300">
+      <v-card>
+        <v-toolbar color="info">
+          <v-toolbar-title>添加常用规格</v-toolbar-title>
+          <v-spacer></v-spacer>
+        </v-toolbar>
+        <v-divider></v-divider>
+        <v-row>
+          <v-col cols="1"></v-col>
+          <v-col cols="10">
+            <v-text-field width="80%" v-model="addSpecInfo.length" label="长度" color="secondary" type="number" />
+            <v-text-field width="80%" v-model="addSpecInfo.width" label="宽度" color="secondary" type="number" />
+            <v-text-field width="80%" v-model="addSpecInfo.weight" label="重量" color="secondary" type="number" />
+          </v-col>
+          <v-col cols="1"></v-col>
+        </v-row>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-btn color="success" variant="text" @click="addSpec()">
+            添加
+          </v-btn>
+          <v-btn color="blue-darken-1" variant="text" @click="dialogAdd = false">
+            关闭
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-container>
+</template>
 
-        <v-col cols="12">
-          <base-material-card
-            color="success"
-            inline
-            title="Form Elements"
-            class="px-5 py-3"
-          >
-            <v-subheader class="display-1 mt-3">
-              Text fields
-            </v-subheader>
+<script>
+import * as d3 from "d3";
+import axios from 'axios'
+export default {
+  name: 'OptiAreaPage',
 
-            <v-form class="pt-1">
-              <v-text-field
-                label="With help"
-                outlined
-                class="ml-4"
-              />
-
-              <v-text-field
-                label="Password"
-                outlined
-                type="password"
-                class="ml-4"
-              />
-
-              <v-subheader class="display-1 mt-3">
-                Checkboxes
-              </v-subheader>
-
-              <v-row no-gutters>
-                <v-col cols="2">
-                  <v-checkbox
-                    input-value="true"
-                    label="On"
-                    value
-                    class="mt-0 ml-4"
-                  />
-                </v-col>
-
-                <v-col cols="2">
-                  <v-checkbox
-                    label="Off"
-                    class="mt-0 ml-4"
-                  />
-                </v-col>
-
-                <v-col cols="4">
-                  <v-checkbox
-                    indeterminate
-                    label="Indeterminate"
-                    value
-                    class="mt-0 ml-4"
-                  />
-                </v-col>
-              </v-row>
-
-              <v-row no-gutters>
-                <v-col cols="2">
-                  <v-checkbox
-                    disabled
-                    input-value="true"
-                    label="On Disabled"
-                    class="mt-0 ml-4"
-                  />
-                </v-col>
-
-                <v-col cols="4">
-                  <v-checkbox
-                    disabled
-                    label="Off Disabled"
-                    value
-                    class="mt-0 ml-4"
-                  />
-                </v-col>
-              </v-row>
-
-              <v-row>
-                <v-col
-                  cols="12"
-                  lg="3"
-                >
-                  <v-subheader class="display-1 mt-3">
-                    Radios
-                  </v-subheader>
-
-                  <v-radio-group
-                    column
-                    class="ml-4 mt-0"
-                  >
-                    <v-radio
-                      label="Column Option 1"
-                      value="radio-1"
-                    />
-
-                    <v-radio
-                      label="Column Option 2"
-                      value="radio-2"
-                    />
-                  </v-radio-group>
-                </v-col>
-
-                <v-col
-                  cols="12"
-                  lg="3"
-                >
-                  <v-subheader class="display-1 mt-3">
-                    Inline Radios
-                  </v-subheader>
-
-                  <v-radio-group
-                    row
-                    class="ml-4 mt-0"
-                  >
-                    <v-radio
-                      label="Row Option 1"
-                      value="radio-1"
-                    />
-
-                    <v-radio
-                      label="Row Option 2"
-                      value="radio-2"
-                    />
-                  </v-radio-group>
-                </v-col>
-              </v-row>
-
-              <v-subheader class="display-1 mt-3">
-                Switches
-              </v-subheader>
-
-              <v-row
-                no-gutters
-                class="ml-4"
-              >
-                <v-col cols="2">
-                  <v-switch
-                    input-value="true"
-                    label="On"
-                    value
-                  />
-                </v-col>
-
-                <v-col cols="2">
-                  <v-switch label="Off" />
-                </v-col>
-
-                <v-col cols="2">
-                  <v-switch
-                    disabled
-                    input-value="true"
-                    label="On Disabled"
-                    value
-                  />
-                </v-col>
-
-                <v-col cols="2">
-                  <v-switch
-                    disabled
-                    label="Disabled"
-                  />
-                </v-col>
-
-                <v-col cols="2">
-                  <v-switch
-                    input-value="true"
-                    label="Loading"
-                    loading="primary"
-                    value
-                  />
-                </v-col>
-              </v-row>
-            </v-form>
-          </base-material-card>
-        </v-col>
-
-        <v-col cols="12">
-          <base-material-card
-            color="success"
-            inline
-            title="Input Variants"
-            class="px-5 py-3"
-          >
-            <v-subheader class="display-1 mt-3">
-              Selects
-            </v-subheader>
-
-            <v-row
-              align="center"
-              class="ml-1"
-            >
-              <v-col
-                cols="12"
-                sm="6"
-              >
-                <v-select
-                  :items="items"
-                  label="Standard"
-                />
-              </v-col>
-
-              <v-col
-                cols="12"
-                sm="6"
-              >
-                <v-select
-                  :items="items"
-                  filled
-                  label="Filled style"
-                />
-              </v-col>
-
-              <v-col
-                cols="12"
-                sm="6"
-              >
-                <v-select
-                  :items="items"
-                  label="Outlined style"
-                  outlined
-                />
-              </v-col>
-
-              <v-col
-                cols="12"
-                sm="6"
-              >
-                <v-select
-                  :items="items"
-                  label="Solo field"
-                  solo
-                />
-              </v-col>
-            </v-row>
-
-            <v-subheader class="display-1 mt-3">
-              Sliders
-            </v-subheader>
-
-            <v-slider
-              color="secondary"
-              prepend-icon="mdi-volume-plus"
-              track-color="secondary lighten-3"
-              class="ml-4"
-            />
-
-            <v-slider
-              append-icon="mdi-alarm"
-              class="ml-4"
-            />
-
-            <v-slider
-              v-model="zoom"
-              append-icon="mdi-magnify-plus-outline"
-              prepend-icon="mdi-magnify-minus-outline"
-              class="ml-4"
-              @click:append="zoomIn"
-              @click:prepend="zoomOut"
-            />
-
-            <v-subheader class="display-1 mt-3">
-              Textareas
-            </v-subheader>
-
-            <v-row class="ml-1">
-              <v-col
-                cols="12"
-                md="6"
-              >
-                <v-textarea
-                  name="input-7-1"
-                  label="Default style"
-                  value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."
-                  hint="Hint text"
-                />
-              </v-col>
-              <v-col
-                cols="12"
-                md="6"
-              >
-                <v-textarea
-                  solo
-                  name="input-7-4"
-                  label="Solo textarea"
-                />
-              </v-col>
-              <v-col
-                cols="12"
-                md="6"
-              >
-                <v-textarea
-                  filled
-                  name="input-7-4"
-                  label="Filled textarea"
-                  value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."
-                />
-              </v-col>
-              <v-col
-                cols="12"
-                md="6"
-              >
-                <v-textarea
-                  outlined
-                  name="input-7-4"
-                  label="Outlined textarea"
-                  value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."
-                />
-              </v-col>
-            </v-row>
-          </base-material-card>
-        </v-col>
-      </v-row>
-    </v-container>
-  </template>
-
-  <script>
-    export default {
-      name: 'OptiAreaPage',
-
-      data: () => ({
-        checkbox: true,
-        items: ['Foo', 'Bar', 'Fizz', 'Buzz'],
-        radioGroup: 1,
-        switch1: true,
-        zoom: 0
-      }),
-      created() {
-        this.$vuetify.theme.dark = false
+  data: () => ({
+    dialogAdd: false,
+    dialogSelect: false,
+    dialog: false,
+    cutWidth: 0,
+    snackbar: false,
+    color: "info",
+    snackbarMsg: "",
+    side: 0,
+    selected: [],
+    cutBtnDisabled: false,
+    mode_data: {
+      childs: [
+        { length: 120, width: 120, quantity: 0, weight: 0 ,color:""},
+        { length: 100, width: 97, quantity: 0, weight: 0 ,color:""},
+        { length: 80, width: 87, quantity: 0, weight: 0 ,color:""},
+      ],
+      parents: [{ length: 1200, width: 1200, quantity: 1, weight: 6 }],
+      result: null,
+      childs_for_select: null,
     },
-    destroyed() {
-        this.$vuetify.theme.dark = true
+    addSpecInfo: {
+      spec_type: "ParentArea",
+      length: 0,
+      width: 0,
+      weight: 0
     },
-      methods: {
-        zoomOut() {
-          this.zoom = (this.zoom - 10) || 0
-        },
-        zoomIn() {
-          this.zoom = (this.zoom + 10) || 100
+    selections: [],
+    headers: [{
+      text: '长度',
+      value: 'length'
+    },
+    {
+      text: '宽度',
+      value: 'width'
+    },
+    {
+      text: '重量',
+      value: 'weight'
+    }],
+    colors: [
+            "#FF5722", // Sun Flower
+            "#E65100", // Torquise
+            "#FFC107", // Orange
+            "#388E3C", // Emerald
+            "#DCE775", // Nephritis
+            "#0277BD", // Carrot
+            "#80D8FF", // Pumpkin
+            "#0288D1", // Green Sea
+            "#26A69A", // Peter River
+            "#26C6DA", // Belize Hole
+            "#651FFF", // Alizarin
+            "#7E57C2", // Pomegranate
+            "#5C6BC0", // Amethyst
+            "#8e44ad", // Wisteria
+            "#EF5350", // Clouds
+            '#8E24AA', // Silver
+            '#AA00FF', // Concrete <- Clouds & Silver are close
+            '#2196F3', // West Asphalt <- don't use because it is very close to Midnight blue
+            '#1E88E5', // Midnight Blue <- use for wasted part
+            '#795548',
+            '#FF9E80',
+        ],
+  }),
+  created() {
+    this.$vuetify.theme.dark = false
+  },
+  destroyed() {
+    this.$vuetify.theme.dark = true
+  },
+  methods: {
+    getColor: function (color) {
+      return { backgroundColor: `${color}` };
+    },
+    disableCutBtn: function (disabled) {
+      this.cutBtnDisabled = disabled;
+    },
+    alertErr: function (error, msg) {
+      this.snackbar = true;
+      if (error === true) {
+        this.color = 'error';
+      } else {
+        this.color = 'info';
+      }
+      this.snackbarMsg = msg;
+    },
+    hoverPlan(index) {
+      let i = 0;
+      this.childs_for_select.forEach((item) => {
+        if (index === i) {
+          item.select = true;
+        } else {
+          item.select = false;
+        }
+        i++;
+      });
+    },
+    addSpec: function () {
+      let url_selection = "http://127.0.0.1:5001/api/save_spec";
+      let config = {
+        headers: {
+          access_token: $cookies.get("access_token")
+        }
+      };
+      this.addSpecInfo.length = parseFloat(this.addSpecInfo.length);
+      this.addSpecInfo.width = parseFloat(this.addSpecInfo.width);
+      this.addSpecInfo.weight = parseFloat(this.addSpecInfo.weight);
+      axios.post(url_selection, this.addSpecInfo, config)
+        .then((response) => {
+          this.dialogAdd = false;
+          if (response.data.code == 0) {
+            this.getSelections();
+            this.selected = [];
+            return
+          }
+          this.alertErr(true, response.data.msg);
+          return
+        })
+        .catch((error) => {
+          this.dialogAdd = false;
+          this.alertErr(true, error.message);
+          return false;
+        });
+    },
+    selectSpec: function () {
+      this.dialogSelect = true;
+      this.getSelections();
+    },
+    selectedSpec: function () {
+      this.dialogSelect = false;
+
+      this.selected.forEach((item) => {
+        this.mode_data.parents.push({ length: item.length, width: item.width, quantity: 1, weight: item.weight });
+      })
+    },
+    getSelections: function () {
+      let url_selection = "http://127.0.0.1:5001/api/get_spec/parentArea";
+      let config = {
+        headers: {
+          access_token: $cookies.get("access_token")
+        }
+      };
+      axios.get(url_selection, config)
+        .then((response) => {
+          console.log(response);
+          if (response.data.code == 0) {
+            this.selections = [];
+            response.data.data.forEach((data) => this.selections.push(data))
+            return
+          }
+          this.alertErr(true, response.data.msg);
+          return
+        })
+        .catch((error) => {
+          this.alertErr(true, error.message);
+          return false;
+        });
+    },
+    addRowToChilds: function () {
+      this.mode_data.childs.push({ length: 0, width: 0, quantity: 0, weight: 0 });
+    },
+    removeRowToChilds: function (index) {
+      this.mode_data.childs.splice(index, 1);
+    },
+    addRowToParents: function () {
+      this.mode_data.parents.push({ length: 0, width: 0, quantity: 0, weight: 0 });
+    },
+    removeRowToParents: function (index) {
+      this.mode_data.parents.splice(index, 1);
+    },
+    prepareDataToSend1DForWeight: function (typeCut) {
+      let newParents = [];
+      let allWeight = 0;
+      let allArea = 0;
+      let subsArea = 0;
+      this.mode_data.parents.forEach((parent) => {
+        allArea += parseFloat(parent.width) * parseFloat(parent.length) * parseInt(parent.quantity);
+        allWeight += parseFloat(parent.weight) * parseInt(parent.quantity);
+        newParents.push({ "quantity": parseInt(parent.quantity), "width": parseFloat(parent.width) * 1000, "length": parseFloat(parent.length) * 1000, "weight": parseInt(parseFloat(parent.weight) * 1000) });
+      });
+      let unitWeight = allWeight / allArea;
+      let newChilds = [];
+      this.mode_data.childs.forEach((child) => {
+
+        let area = parseFloat(child.width) * parseFloat(child.length);
+        if (typeCut == "weight") {
+          let quantity = parseInt(parseFloat(child.weight) / (area * unitWeight));
+          child.quantity = quantity;
+        }
+        subsArea += area * child.quantity;
+
+        newChilds.push({ "quantity": parseInt(child.quantity), "width": parseInt(parseFloat(child.width) * 1000), "length": parseInt(parseFloat(child.length) * 1000) });
+      });
+
+      if (subsArea >= allArea) {
+        this.alertErr(true, "需要切割的数量过大，超过母板的总面积，请修改需要切割重量或数量！");
+        return false;
+      }
+
+      if (subsArea >= (allArea * 0.95)) {
+        this.alertErr(true, "需要切割的数量过大，超过母板的总面积的95%，有可能会没有最优解！");
+      }
+
+      return {
+        child_areas: newChilds,
+        parent_areas: newParents,
+        side: parseInt(parseFloat(this.cutWidth) * 1000),
+        seed: Math.round(Math.random() * 10)
+      };
+    },
+    sendCutSheet: function (typeCut) {
+      this.mode_data.childs_for_select = [];
+      this.cutRules = false;
+      for (let index = 0; index < this.mode_data.parents.length; index++) {
+        const element = this.mode_data.parents[index];
+        if (element.length == null || element.length == 0) {
+          this.alertErr(true, "请输入母卷的长度！");
+          return false;
+        }
+        if (element.width == null || element.width == 0) {
+          this.alertErr(true, "请输入母卷的宽度！");
+          return false;
+        }
+        if (element.weight == null || element.weight == 0) {
+          this.alertErr(true, "请输入母卷的重量！");
+          return false;
+        }
+        if (element.quantity == null || element.quantity == 0) {
+          this.alertErr(true, "请输入母卷的数量！");
+          return false;
         }
       }
-    }
-  </script>
+      for (let index = 0; index < this.mode_data.childs.length; index++) {
+        const element = this.mode_data.childs[index];
+        if (element.length == null || element.length == 0) {
+          this.alertErr(true, "请输入子卷的长度！");
+          return false;
+        }
+        if (element.width == null || element.width == 0) {
+          this.alertErr(true, "请输入子卷的宽度！");
+          return false;
+        }
+        if (typeCut == "weight") {
+          if (element.weight == null || element.weight == 0) {
+            this.alertErr(true, "请输入子卷的重量！");
+            return false;
+          }
+        }
+        if (typeCut == "quantity") {
+          if (element.quantity == null || element.quantity == 0) {
+            this.alertErr(true, "请输入子卷数量！");
+            return false;
+          }
+        }
+      }
+      let url = 'http://127.0.0.1:5001/api/stocks_2d_by_weight';
+      const dataToSend = this.prepareDataToSend1DForWeight(typeCut);
+      if (dataToSend == false) {
+        return
+      }
+      console.log(dataToSend);
+      this.disableCutBtn(true);
+      let config = {
+        headers: {
+          access_token: $cookies.get("access_token")
+        }
+      };
+      axios
+        .post(url, dataToSend, config)
+        .then((response) => {
+          console.log(response);
+          this.disableCutBtn(false);
+          if (response.data.code == 0) {
+            this.displayResult(response);
+            return
+          }
+          this.alertErr(true, response.data.msg);
+        })
+        .catch((error) => {
+          console.log(error);
+          this.disableCutBtn(false);
+          this.alertErr(true, "连接服务失败，请检查网络");
+          return false;
+        });
+    },
+    displayResult: function (response) {
+      if (response.data.data && response.data.data.status_name) {
+        if (response.data.data.status_name == "Error") {
+          this.alertErr(true, "服务计算超出母卷的面积，请修改子卷重量或数量后重试！");
+          return false;
+        }
+      }
+
+      this.mode_data.result = response.data;
+
+      if (this.mode_data.result && this.mode_data.result.status_name) {
+        this.mode_data.result.statusName =
+          this.mode_data.result.status_name.toLowerCase();
+      }
+      // if (this.cutRules == false) {
+
+      // } else {
+        let rolls = [];
+        this.mode_data.result.data.solutions.forEach((soluton) => {
+          let subs = [];
+
+          soluton.subs.forEach((item) => {
+            console.log(item);
+            let tmpItem = {
+              x1:Math.round(parseFloat(item.x))/1000,
+              y1:Math.round(parseFloat(item.y))/1000,
+              x2:(Math.round(parseFloat(item.x))/1000)+(Math.round(parseFloat(item.width))/1000),
+              y2:(Math.round(parseFloat(item.y))/1000)+(Math.round(parseFloat(item.length))/1000),
+            }
+            subs.push(tmpItem);
+          });
+
+          rolls.push(subs);
+        });
+
+        this.mode_data.result.solutions = rolls;
+      // }
+      this.draw2d();
+    },
+    draw2d: function () {
+      // clear old drawing
+      this.clearTheDrawing();
+      this.mode_data.childs.forEach((item)=>{
+        let j = Math.round(Math.random() * 20)
+        item.color = this.colors[j];
+      });
+
+      if (!this.mode_data.result) {
+        console.log(
+          `Cannot draw anything. "result" is: ${this.mode_data.result} for mode: ${this.mode}`
+        );
+        return;
+      }
+
+      const solutions = this.mode_data.result.solutions;
+
+      for (let i = 0; i < solutions.length; i++) {
+        const sol = solutions[i];
+
+        for (let j = 0; j < sol.length; j++) {
+          const rect = sol[j];
+          let x1 = parseFloat(rect.x1);
+          let y1 = parseFloat(rect.y1);
+          let x2 = parseFloat(rect.x2);
+          let y2 = parseFloat(rect.y2);
+          let tmpColor = "";
+          this.mode_data.childs.forEach((item) => {
+            if (((parseInt(item.width) == parseInt(y2-y1)) && (parseInt(item.length) == parseInt(x2-x1)))
+            || ((parseInt(item.width) == parseInt(x2-x1)) && (parseInt(item.length) == parseInt(y2-y1)))){
+              if (tmpColor == ""){
+                tmpColor = item.color;
+              }
+            }
+          });
+          this.drawRect(x1, y1, x2, y2, tmpColor);
+        }
+        break;
+      }
+    },
+    clearTheDrawing: function () {
+      d3.selectAll("#d3_area svg > *").remove();
+      d3.select("#d3_area svg").style("border", "");
+    },
+    drawRect: function (x1, y1, x2, y2, color) {
+
+      console.log("Drawing Rect... Color: ", color);
+      console.log("Draw rect", x1, y1, x2, y2);
+
+      const width = Math.abs(parseFloat(x2) - parseFloat(x1));
+      const height = Math.abs(parseFloat(y2) - parseFloat(y1));
+
+
+      // const rectTitle = `${width} x ${height}`;
+
+      const parentWidth = parseFloat(this.mode_data.parents[0].width);
+      const parentHeight = parseFloat(this.mode_data.parents[0].length);
+      // const dataLen = this.mode_data.parents.length;
+
+      let xScale = d3.scaleLinear().domain([0, parentWidth]).range([0, 300]); // <- TODO here put the dynamic width of chart
+
+      let yScale = d3.scaleLinear().domain([0, parentHeight]).range([0, 300]); // display in 300 pixels height?
+
+      console.log(
+        "D3 Scaled rect",
+        xScale(x1),
+        yScale(y1),
+        xScale(width),
+        yScale(height)
+      );
+
+      // create svg element:
+      let svg = d3.select("#d3_area svg");
+
+      var margin = { top: 0, right: 0, bottom: 0, left: 0 };
+
+      let svgWidth = 300 - margin.left - margin.right;
+      let svgHeight = 300 - margin.top - margin.bottom;
+
+      let g = svg
+        .attr("width", svgWidth + margin.left + margin.right)
+        .attr("height", svgHeight + margin.top + margin.bottom)
+        .style("border", "1px solid #34495e")
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      // Add the path using this helper function
+      g
+        // .data(coords)
+        .append("rect")
+        // .style('fill', function (coords) { return coords.color })
+        .style("fill", color)
+        // .style("background-color", "black")
+        // .attr('x', rectX)
+        .attr("x", xScale(x1)) //function (coords) { return xScale(coords.x1) })
+        // .attr('y', rectY)
+        .attr("y", yScale(y1)) //function (coords) {return yScale(coords.y1) })
+        // .attr('width', rectW)
+        .attr("width", xScale(width)) //function (coords) { return xScale(coords.width) })
+        // .attr('height', rectH)
+        .attr("height", yScale(height)) //function (coords) { return yScale(coords.height) })
+        .attr("stroke", "#34495e")
+        .text(`${width} x ${height}`);
+
+      // add the label to the shape
+      // const labelX = rectX + Math.abs( rectW / 2 - 15);
+      // const labelY = rectY + Math.abs( rectH / 2 + 5);
+
+      const labelX = xScale(x1) + Math.abs(xScale(width) / 2); // - 15);
+      const labelY = yScale(y1) + Math.abs(yScale(height) / 2); // + 5);
+
+      //   let label =
+      g.append("text")
+        .attr("x", labelX)
+        .attr("y", labelY)
+        .attr("stroke", "#34495e")
+        .attr('stroke', 'black');
+      // .style("font-size", 15);
+
+      return;
+    },
+  }
+}
+</script>
