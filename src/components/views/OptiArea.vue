@@ -114,8 +114,8 @@
             <v-col cols="3"></v-col>
             <v-col cols="3">
               <v-card-actions class="pl-0 text-right">
-                <v-btn color="success" :disabled="cutBtnDisabled" @click="sendCutRules()">
-                  按长度切割
+                <v-btn color="success" :disabled="cutBtnDisabled" @click="sendCutRule()">
+                  按规格切割
                 </v-btn>
               </v-card-actions>
             </v-col>
@@ -145,7 +145,7 @@
         <base-material-card color="pink" icon="mdi-format-line-style" text="<span color='white'><b>待选方案</b></span>"
           class="px-5 py-3">
           <v-row>
-            <v-col cols="2" v-for="(child_rolls, index) in mode_data.childs_for_select" v-bind:key="index">
+            <v-col cols="3" v-for="(child_rolls, index) in mode_data.childs_for_select" v-bind:key="index">
               <v-simple-table class="theme--dark" dense @mouseover="hoverPlan(i)">
                 <thead>
                   <tr>
@@ -158,10 +158,10 @@
                 <thead>
                   <tr class="border">
                     <td>#</td>
-                    <td> 损耗</td>
+                    <td colspan="2">损耗面积</td>
                     <td>
                       {{
-                        child_rolls.worstWidth
+                        child_rolls.solutions.solutions[0].unused_area
                       }}
                     </td>
                   </tr>
@@ -170,7 +170,10 @@
                   <tr v-for="(child, i) in child_rolls.sub_child_solver" v-bind:key="i">
                     <td>{{ i + 1 }}</td>
                     <td>
-                      {{ child.width }}
+                      {{ child.length/1000 }}
+                    </td>
+                    <td>
+                      {{ child.width/1000 }}
                     </td>
                     <td>
                       {{ child.quantity }}
@@ -356,7 +359,9 @@ import * as d3 from "d3";
 import axios from 'axios'
 export default {
   name: 'OptiAreaPage',
-
+  components: {
+        PagesBtn: () => import('../elements/Btn.vue')
+    },
   data: () => ({
     dialogAdd: false,
     dialogSelect: false,
@@ -419,6 +424,25 @@ export default {
       '#1E88E5', // Midnight Blue <- use for wasted part
       '#795548',
       '#FF9E80',
+      "#f1c40f", // Sun Flower
+      "#1abc9c", // Torquise
+      "#f39c12", // Orange
+      "#2ecc71", // Emerald
+      "#27ae60", // Nephritis
+      "#e67e22", // Carrot
+      "#d35400", // Pumpkin
+      "#16a085", // Green Sea
+      "#3498db", // Peter River
+      "#2980b9", // Belize Hole
+      "#e74c3c", // Alizarin
+      "#c0392b", // Pomegranate
+      "#9b59b6", // Amethyst
+      "#8e44ad", // Wisteria
+      "#ecf0f1", // Clouds
+      '#bdc3c7', // Silver
+      '#95a5a6', // Concrete <- Clouds & Silver are close
+      '#34495e', // West Asphalt <- don't use because it is very close to Midnight blue
+      '#2c3e50',
     ],
   }),
   created() {
@@ -521,6 +545,73 @@ export default {
           return false;
         });
     },
+    selectdRow: function (idx) {
+      this.selectedSolIndex = true;
+      let selectdChild = this.mode_data.childs_for_select[idx];
+
+      for (let index = 0; index < selectdChild.sub_child_solver.length; index++) {
+        const ele = selectdChild.sub_child_solver[index];
+        this.mode_data.childs[index].quantity = ele.quantity;
+      }
+      this.rule_selectd_index = idx;
+      this.mode_data.result = { "data": { "solutions": null, "sub_weights": null } };
+      this.mode_data.result.data.solutions = this.mode_data.childs_for_select[idx].solutions.solutions;
+
+      // let rolls = [];
+      // selectdChild.solutions.solutions.forEach((soluton) => {
+      //   let subs = [];
+      //   let subs_list = [];
+      //   soluton.used_area = Math.round(soluton.used_area) / 1000 / 1000;
+      //   soluton.used_weight = Math.round(soluton.used_weight) / 1000;
+      //   soluton.unused_area = Math.round(soluton.unused_area) / 1000 / 1000;
+      //   soluton.unused_weight = Math.round(soluton.unused_weight) / 1000;
+      //   soluton.subs.forEach((item) => {
+      //     let has = false;
+      //     subs_list.forEach((sub) => {
+      //       if (sub.area == (Math.round(parseFloat(item.width)) / 1000) * (Math.round(parseFloat(item.length)) / 1000)) {
+      //         let w = ((Math.round(parseFloat(item.width)) / 1000) * (Math.round(parseFloat(item.length)) / 1000) / soluton.used_area) * soluton.used_weight;
+      //         sub.number += 1;
+      //         sub.weight += Math.round(w * 1000) / 1000;
+      //         has = true;
+      //       }
+      //     });
+
+      //     if (has == false) {
+      //       let w = ((Math.round(parseFloat(item.width)) / 1000) * (Math.round(parseFloat(item.length)) / 1000) / soluton.used_area) * soluton.used_weight;
+      //       subs_list.push({
+      //         "area": (Math.round(parseFloat(item.width)) / 1000) * (Math.round(parseFloat(item.length)) / 1000),
+      //         "key": (Math.round(parseFloat(item.length)) / 1000) + "X" + (Math.round(parseFloat(item.width)) / 1000),
+      //         "number": 1,
+      //         "weight": Math.round(w * 1000) / 1000
+      //       });
+      //     }
+
+      //     let tmpItem = {
+      //       x1: Math.round(parseFloat(item.x)) / 1000,
+      //       y1: Math.round(parseFloat(item.y)) / 1000,
+      //       x2: (Math.round(parseFloat(item.x)) / 1000) + (Math.round(parseFloat(item.width)) / 1000),
+      //       y2: (Math.round(parseFloat(item.y)) / 1000) + (Math.round(parseFloat(item.length)) / 1000),
+      //     }
+      //     subs.push(tmpItem);
+      //   });
+
+      //   let list_str = [];
+      //   subs_list.forEach((s) => {
+      //     list_str.push(s.key + "*" + s.number + "/" + Math.round(parseFloat(s.weight) * 1000) / 1000);
+      //   });
+
+      //   soluton.subs_list = list_str;
+
+      //   rolls.push(subs);
+      // });
+
+      // this.mode_data.result.solutions = rolls;
+
+      this.displayResult();
+
+      this.mode_data.childs_for_select[idx].solutions.solutions.computed = true;
+
+    },
     addRowToChilds: function () {
       this.mode_data.childs.push({ length: 0, width: 0, quantity: 0, weight: 0 });
     },
@@ -533,7 +624,7 @@ export default {
     removeRowToParents: function (index) {
       this.mode_data.parents.splice(index, 1);
     },
-    prepareDataToSend1DForWeight: function (typeCut) {
+    prepareDataToSend2DForWeight: function (typeCut) {
       let newParents = [];
       let allWeight = 0;
       let allArea = 0;
@@ -573,7 +664,25 @@ export default {
         seed: Math.round(Math.random() * 10)
       };
     },
+    prepareDataToSend2DForRule: function () {
+      let newParents = [];
+      this.mode_data.parents.forEach((parent) => {
+        newParents.push({ "quantity": parseInt(parent.quantity), "width": parseFloat(parent.width) * 1000, "length": parseFloat(parent.length) * 1000, "weight": parseInt(parseFloat(parent.weight) * 1000) });
+      });
+      let newChilds = [];
+      this.mode_data.childs.forEach((child) => {
+        newChilds.push({ "width": parseInt(parseFloat(child.width) * 1000), "length": parseInt(parseFloat(child.length) * 1000) });
+      });
+      return {
+        child_areas: newChilds,
+        parent_areas: newParents,
+        side: parseInt(parseFloat(this.cutWidth) * 1000),
+        seed: Math.round(Math.random() * 10)
+      };
+    },
     sendCutSheet: function (typeCut) {
+      this.clearTheDrawing();
+      this.mode_data.result = null;
       this.mode_data.childs_for_select = [];
       this.cutRules = false;
       for (let index = 0; index < this.mode_data.parents.length; index++) {
@@ -619,7 +728,7 @@ export default {
         }
       }
       let url = 'http://127.0.0.1:5001/api/stocks_2d_by_weight';
-      const dataToSend = this.prepareDataToSend1DForWeight(typeCut);
+      const dataToSend = this.prepareDataToSend2DForWeight(typeCut);
       if (dataToSend == false) {
         return
       }
@@ -638,7 +747,18 @@ export default {
           this.dialog = false;
           this.disableCutBtn(false);
           if (response.data.code == 0) {
-            this.displayResult(response);
+            if (response.data.data && response.data.data.status_name) {
+              if (response.data.data.status_name == "Error") {
+                this.alertErr("error", "服务计算超出母卷的面积，请修改子卷重量或数量后重试！");
+                return false;
+              }
+            }
+            this.mode_data.result = response.data;
+            if (this.mode_data.result && this.mode_data.result.status_name) {
+              this.mode_data.result.statusName =
+                this.mode_data.result.status_name.toLowerCase();
+            }
+            this.displayResult();
             return
           }
           this.alertErr("error", response.data.msg);
@@ -651,64 +771,118 @@ export default {
           return false;
         });
     },
-    displayResult: function (response) {
-      if (response.data.data && response.data.data.status_name) {
-        if (response.data.data.status_name == "Error") {
-          this.alertErr("error", "服务计算超出母卷的面积，请修改子卷重量或数量后重试！");
+    sendCutRule: function () {
+      this.clearTheDrawing();
+      this.mode_data.result = null;
+      this.mode_data.childs_for_select = [];
+      this.cutRules = false;
+      for (let index = 0; index < this.mode_data.parents.length; index++) {
+        const element = this.mode_data.parents[index];
+        if (element.length == null || element.length == 0) {
+          this.alertErr("error", "请输入母卷的长度！");
+          return false;
+        }
+        if (element.width == null || element.width == 0) {
+          this.alertErr("error", "请输入母卷的宽度！");
+          return false;
+        }
+        if (element.weight == null || element.weight == 0) {
+          this.alertErr("error", "请输入母卷的重量！");
+          return false;
+        }
+        if (element.quantity == null || element.quantity == 0) {
+          this.alertErr("error", "请输入母卷的数量！");
           return false;
         }
       }
-
-      this.mode_data.result = response.data;
-
-      if (this.mode_data.result && this.mode_data.result.status_name) {
-        this.mode_data.result.statusName =
-          this.mode_data.result.status_name.toLowerCase();
+      for (let index = 0; index < this.mode_data.childs.length; index++) {
+        const element = this.mode_data.childs[index];
+        if (element.length == null || element.length == 0) {
+          this.alertErr("error", "请输入子卷的长度！");
+          return false;
+        }
+        if (element.width == null || element.width == 0) {
+          this.alertErr("error", "请输入子卷的宽度！");
+          return false;
+        }
       }
-      // if (this.cutRules == false) {
+      let url = 'http://127.0.0.1:5001/api/stocks_2d_by_area';
+      const dataToSend = this.prepareDataToSend2DForRule();
+      if (dataToSend == false) {
+        return
+      }
+      console.log(dataToSend);
+      this.disableCutBtn(true);
+      let config = {
+        headers: {
+          access_token: $cookies.get("access_token")
+        }
+      };
+      this.dialog = true;
+      axios
+        .post(url, dataToSend, config)
+        .then((response) => {
+          console.log(response);
+          this.dialog = false;
+          this.disableCutBtn(false);
+          if (response.data.code == 0) {
+            this.displayRulesResult(response);
+            return
+          }
+          this.alertErr("error", response.data.msg);
+        })
+        .catch((error) => {
+          this.dialog = false;
+          console.log(error);
+          this.disableCutBtn(false);
+          this.alertErr("error", "连接服务失败，请检查网络");
+          return false;
+        });
+    },
+    displayResult: function () {
 
-      // } else {
       let rolls = [];
       this.mode_data.result.data.solutions.forEach((soluton) => {
         let subs = [];
         let subs_list = [];
-        soluton.used_area = Math.round(soluton.used_area) / 1000 / 1000;
-        soluton.used_weight = Math.round(soluton.used_weight) / 1000;
-        soluton.unused_area = Math.round(soluton.unused_area) / 1000 / 1000;
-        soluton.unused_weight = Math.round(soluton.unused_weight) / 1000;
+        let unit_value = 1000;
+        soluton.used_area = Math.round(soluton.used_area) / unit_value / unit_value;
+        soluton.used_weight = Math.round(soluton.used_weight) / unit_value;
+        soluton.unused_area = Math.round(soluton.unused_area) / unit_value / unit_value;
+        soluton.unused_weight = Math.round(soluton.unused_weight) / unit_value;
         soluton.subs.forEach((item) => {
           let has = false;
           subs_list.forEach((sub) => {
-            if (sub.area == (Math.round(parseFloat(item.width)) / 1000) * (Math.round(parseFloat(item.length)) / 1000)) {
-              let w = ((Math.round(parseFloat(item.width)) / 1000) * (Math.round(parseFloat(item.length)) / 1000) / soluton.used_area) * soluton.used_weight;
+            if (sub.area == (Math.round(parseFloat(item.width)) / unit_value) * (Math.round(parseFloat(item.length)) / unit_value)) {
+              let w = ((Math.round(parseFloat(item.width)) / unit_value) * (Math.round(parseFloat(item.length)) / unit_value) / soluton.used_area) * soluton.used_weight;
               sub.number += 1;
-              sub.weight += Math.round(w * 1000) / 1000;
+              sub.weight += Math.round(w * unit_value) / unit_value;
               has = true;
             }
           });
 
           if (has == false) {
-            let w = ((Math.round(parseFloat(item.width)) / 1000) * (Math.round(parseFloat(item.length)) / 1000) / soluton.used_area) * soluton.used_weight;
+            let w = ((Math.round(parseFloat(item.width)) / unit_value) * (Math.round(parseFloat(item.length)) / unit_value) / soluton.used_area) * soluton.used_weight;
             subs_list.push({
-              "area": (Math.round(parseFloat(item.width)) / 1000) * (Math.round(parseFloat(item.length)) / 1000),
-              "key": (Math.round(parseFloat(item.length)) / 1000) + "X" + (Math.round(parseFloat(item.width)) / 1000),
+              "area": (Math.round(parseFloat(item.width)) / unit_value) * (Math.round(parseFloat(item.length)) / unit_value),
+              "key": (Math.round(parseFloat(item.length)) / unit_value) + "X" + (Math.round(parseFloat(item.width)) / unit_value),
               "number": 1,
-              "weight": Math.round(w * 1000) / 1000
+              "weight": Math.round(w * unit_value) / unit_value
             });
           }
 
           let tmpItem = {
-            x1: Math.round(parseFloat(item.x)) / 1000,
-            y1: Math.round(parseFloat(item.y)) / 1000,
-            x2: (Math.round(parseFloat(item.x)) / 1000) + (Math.round(parseFloat(item.width)) / 1000),
-            y2: (Math.round(parseFloat(item.y)) / 1000) + (Math.round(parseFloat(item.length)) / 1000),
+            x1: Math.round(parseFloat(item.x)) / unit_value,
+            y1: Math.round(parseFloat(item.y)) / unit_value,
+            x2: (Math.round(parseFloat(item.x)) / unit_value) + (Math.round(parseFloat(item.width)) / unit_value),
+            y2: (Math.round(parseFloat(item.y)) / unit_value) + (Math.round(parseFloat(item.length)) / unit_value),
           }
           subs.push(tmpItem);
         });
 
         let list_str = [];
         subs_list.forEach((s) => {
-          list_str.push(s.key + "*" + s.number + "/" + Math.round(parseFloat(s.weight) * 1000) / 1000);
+          list_str.push(s.key + "*" + s.number + "/" + Math.round(parseFloat(s.weight) * unit_value) / unit_value);
         });
 
         soluton.subs_list = list_str;
@@ -717,14 +891,25 @@ export default {
       });
 
       this.mode_data.result.solutions = rolls;
-      // }
+
       this.draw2d();
+    },
+    displayRulesResult: function (response) {
+      // this.mode_data.result = response.data;
+      if (response.data && response.data.status_name) {
+        this.mode_data.result.statusName =
+        response.data.status_name.toLowerCase();
+      }
+      // 赋值待选方案
+      if (response.data.data.solutions && response.data.data.solutions.length > 0) {
+        this.mode_data.childs_for_select = response.data.data.solutions;
+      }
     },
     draw2d: function () {
       // clear old drawing
       this.clearTheDrawing();
       this.mode_data.childs.forEach((item) => {
-        let j = Math.round(Math.random() * 20)
+        let j = Math.round(Math.random() * this.colors.length)
         item.color = this.colors[j];
       });
 
@@ -847,6 +1032,52 @@ export default {
 
       return;
     },
+    downloadCsv: function () {
+            if (!this.mode_data.result || !this.mode_data.result.solutions) {
+                console.log("downloadCsv: bigRolls are empty..");
+                return;
+            }
+
+            // prepare data
+            let dataForCsv = [["序号", "有效面积", "有效重量", "使用率", "损耗面积", "损耗重量", "明细（规格*数量/重量）"]];
+            let numSmallRolls = 0;
+
+            const bigRolls = this.mode_data.result.data.solutions;
+            for (let i = 0; i < bigRolls.length; i++) {
+                // ['Stock #', 'Usage', 'Width of Cuts']
+                const nextRow = [
+                    i + 1,
+                    bigRolls[i].used_area ,
+                    bigRolls[i].used_weight,
+                    this.getPercentageUtilization(parseFloat(bigRolls[i].unused_area), parseFloat(bigRolls[i].used_area)) + "%",
+                    bigRolls[i].unused_area,
+                    bigRolls[i].unused_weight,
+                    bigRolls[i].subs_list.join(",")
+                ];
+                dataForCsv.push(nextRow);
+            }
+            const csvContent =
+                "data:text/csv;charset=utf-8," +
+                dataForCsv.map((e) => e.join(",")).join("\n");
+            // console.log('csvContent: ', csvContent);
+
+            // download the file
+            let encodedUri = encodeURI(csvContent);
+            // console.log('encodedUri: ', encodedUri);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+
+            // unique and identifiable filename
+            const d = new Date();
+            const dateString = `${d.getFullYear()}-${d.getMonth() + 1
+                }-${d.getUTCDate()}-${d.getHours()}${d.getMinutes()}-${d.getSeconds()}`;
+
+            const filename = `cuts_${numSmallRolls}_${dateString}.csv`;
+            link.setAttribute("download", filename);
+
+            document.body.appendChild(link); // Required for FF
+            link.click(); // This will download the data file named "my_data.csv".
+        },
   }
 }
 </script>
