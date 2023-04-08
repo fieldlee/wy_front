@@ -15,54 +15,6 @@ const router =  new Router({
         {
           name: 'Home',
           path: '',
-          component: () => import('@/components/views/OptiOne')
-        }
-      ]
-    },
-    {
-      path: '/pages',
-      component: () => import('@/layout/Index'),
-      children: [
-        {
-          name: 'OptiOne',
-          path: 'opti1d',
-          component: () => import('@/components/views/OptiOne')
-        },
-        {
-          name: 'OptiArea',
-          path: 'optiarea',
-          component: () => import('@/components/views/OptiArea')
-        }
-      ]
-    },
-    {
-      path: '*',
-      component: () => import('@/layout/Index'),
-      children: [
-        {
-          name: '404 Error',
-          path: '',
-          component: () => import('@/components/views/Error')
-        }
-      ]
-    }
-  ]
-});
-
-/**
-
-
-const router =  new Router({
-  mode: 'history',
-  base: process.env.BASE_URL,
-  routes: [
-    {
-      path: '/',
-      component: () => import('@/layout/Index'),
-      children: [
-        {
-          name: 'Home',
-          path: '',
           component: () => import('@/components/views/Home')
         }
       ]
@@ -116,6 +68,5 @@ const router =  new Router({
     }
   ]
 });
- */
 
 export default router;

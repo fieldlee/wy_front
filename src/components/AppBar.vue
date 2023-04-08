@@ -12,7 +12,7 @@
         </v-btn>
       </v-row>
     </v-container>
-    <!--
+
 
  <v-menu bottom left min-width="200" offset-y origin="top right" transition="scale-transition" v-if="logined == true">
       <template v-slot:activator="{ attrs, on }">
@@ -31,8 +31,6 @@
         </template>
       </v-list>
     </v-menu>
-
-     -->
 
   </v-app-bar>
 </template>
@@ -79,52 +77,8 @@ export default {
     this.resetItems();
   },
   data: () => ({
-/**
+
  items: [
-      {
-        to: "/",
-        icon: "mdi-view-dashboard",
-        text: "首页"
-      },
-      {
-        to: "/pages/opti1d",
-        icon: "mdi-format-line-weight",
-        text: "分条"
-      },
-      {
-        to: "/pages/optiarea",
-        icon: "mdi-land-plots",
-        text: "分块"
-      },
-      {
-        to: "/pages/login",
-        icon: "mdi-fingerprint",
-        text: "登录"
-      },
-      {
-        to: "/pages/register",
-        icon: "mdi-account-multiple-plus",
-        text: "注册"
-      }
-    ],
-    titles: {
-      '/pages/lock': '锁屏',
-      '/pages/login': '登录',
-      '/pages/pricing': '',
-      '/pages/register': '注册',
-      '/pages/forget': '忘记密码',
-      '/pages/opti1d': '分条切割方案',
-      '/pages/optiarea': '分块切割方案'
-    },
-    profile: [
-      { title: '设置常用',icon:"mdi-account"  },
-      { divider: true },
-      { title: '退出系统',icon:"mdi-account" }
-    ]
- */
-
-
-    items: [
       {
         to: "/",
         icon: "mdi-view-dashboard",
@@ -181,11 +135,11 @@ export default {
     resetItems:function() {
       if (this.logined == true) {
       this.items = [
-      // {
-      //         to: "/",
-      //         icon: "mdi-view-dashboard",
-      //         text: "首页"
-      //       },
+      {
+              to: "/",
+              icon: "mdi-view-dashboard",
+              text: "首页"
+            },
             {
               to: "/pages/opti1d",
               icon: "mdi-format-line-weight",
@@ -199,11 +153,11 @@ export default {
     }
     if (this.logined == false) {
         this.items = [
-      // {
-      //   to: "/",
-      //   icon: "mdi-view-dashboard",
-      //   text: "首页"
-      // },
+      {
+        to: "/",
+        icon: "mdi-view-dashboard",
+        text: "首页"
+      },
       {
         to: "/pages/opti1d",
         icon: "mdi-format-line-weight",
@@ -213,18 +167,17 @@ export default {
         to: "/pages/optiarea",
         icon: "mdi-land-plots",
         text: "分块"
+      },
+      {
+        to: "/pages/login",
+        icon: "mdi-fingerprint",
+        text: "登录"
+      },
+      {
+        to: "/pages/register",
+        icon: "mdi-account-multiple-plus",
+        text: "注册"
       }
-      // ,
-      // {
-      //   to: "/pages/login",
-      //   icon: "mdi-fingerprint",
-      //   text: "登录"
-      // },
-      // {
-      //   to: "/pages/register",
-      //   icon: "mdi-account-multiple-plus",
-      //   text: "注册"
-      // }
     ];
     }
     }
