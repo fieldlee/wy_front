@@ -161,7 +161,7 @@
                     <td colspan="2">损耗面积</td>
                     <td>
                       {{
-                        child_rolls.solutions.solutions[0].unused_area
+                        child_rolls.solutions.solutions[0].unused_area / 1000 / 1000
                       }}
                     </td>
                   </tr>
@@ -170,10 +170,10 @@
                   <tr v-for="(child, i) in child_rolls.sub_child_solver" v-bind:key="i">
                     <td>{{ i + 1 }}</td>
                     <td>
-                      {{ child.length/1000 }}
+                      {{ child.length / 1000 }}
                     </td>
                     <td>
-                      {{ child.width/1000 }}
+                      {{ child.width / 1000 }}
                     </td>
                     <td>
                       {{ child.quantity }}
@@ -218,19 +218,19 @@
               <tr v-for="(bigRoll, index) in mode_data.result.data.solutions" v-bind:key="index">
                 <td>{{ index + 1 }}</td>
                 <td>
-                  {{ bigRoll.used_area }}
+                  {{ getRound(bigRoll.used_area, true) }}
                 </td>
                 <td>
-                  {{ bigRoll.used_weight }}
+                  {{ getRound(bigRoll.used_weight, false) }}
                 </td>
                 <td>
                   {{ getPercentageUtilization(parseFloat(bigRoll.unused_area), parseFloat(bigRoll.used_area)) }}%
                 </td>
                 <td>
-                  {{ bigRoll.unused_area }}
+                  {{ getRound(bigRoll.unused_area, true) }}
                 </td>
                 <td>
-                  {{ bigRoll.unused_weight }}
+                  {{ getRound(bigRoll.unused_weight, false) }}
                 </td>
                 <td>
                   {{ bigRoll.subs_list.join(",") }}
@@ -360,8 +360,8 @@ import axios from 'axios'
 export default {
   name: 'OptiAreaPage',
   components: {
-        PagesBtn: () => import('../elements/Btn.vue')
-    },
+    PagesBtn: () => import('../elements/Btn.vue')
+  },
   data: () => ({
     dialogAdd: false,
     dialogSelect: false,
@@ -375,11 +375,9 @@ export default {
     cutBtnDisabled: false,
     mode_data: {
       childs: [
-        { length: 120, width: 120, quantity: 0, weight: 0, color: "" },
-        { length: 100, width: 97, quantity: 0, weight: 0, color: "" },
-        { length: 80, width: 87, quantity: 0, weight: 0, color: "" },
+        { length: 0, width: 0, quantity: 0, weight: 0, color: "" },
       ],
-      parents: [{ length: 1200, width: 1200, quantity: 1, weight: 6 }],
+      parents: [{ length: 0, width: 0, quantity: 0, weight: 0 }],
       result: null,
       childs_for_select: null,
     },
@@ -452,6 +450,12 @@ export default {
     this.$vuetify.theme.dark = true
   },
   methods: {
+    getRound: function (v, isArea) {
+      if (isArea) {
+        return Math.round(Math.round(parseFloat(v)) / 1000) / 1000;
+      }
+      return Math.round(parseFloat(v)) / 1000;
+    },
     getPercentageUtilization: function (unused, used) {
 
       let percentage = (used * 100) / (unused + used);
@@ -485,7 +489,7 @@ export default {
       });
     },
     addSpec: function () {
-      let url_selection = "http://127.0.0.1:5001/api/save_spec";
+      let url_selection = "http://124.221.185.163:5001/api/save_spec";
       let config = {
         headers: {
           access_token: $cookies.get("access_token")
@@ -517,13 +521,15 @@ export default {
     },
     selectedSpec: function () {
       this.dialogSelect = false;
-
+      if (this.mode_data.parents[0].length == 0) {
+        this.mode_data.parents = [];
+      }
       this.selected.forEach((item) => {
         this.mode_data.parents.push({ length: item.length, width: item.width, quantity: 1, weight: item.weight });
       })
     },
     getSelections: function () {
-      let url_selection = "http://127.0.0.1:5001/api/get_spec/parentArea";
+      let url_selection = "http://124.221.185.163:5001/api/get_spec/parentArea";
       let config = {
         headers: {
           access_token: $cookies.get("access_token")
@@ -727,7 +733,7 @@ export default {
           }
         }
       }
-      let url = 'http://127.0.0.1:5001/api/stocks_2d_by_weight';
+      let url = 'http://124.221.185.163:5001/api/stocks_2d_by_weight';
       const dataToSend = this.prepareDataToSend2DForWeight(typeCut);
       if (dataToSend == false) {
         return
@@ -806,7 +812,7 @@ export default {
           return false;
         }
       }
-      let url = 'http://127.0.0.1:5001/api/stocks_2d_by_area';
+      let url = 'http://124.221.185.163:5001/api/stocks_2d_by_area';
       const dataToSend = this.prepareDataToSend2DForRule();
       if (dataToSend == false) {
         return
@@ -840,21 +846,21 @@ export default {
         });
     },
     displayResult: function () {
-
       let rolls = [];
       this.mode_data.result.data.solutions.forEach((soluton) => {
+        console.log(soluton);
         let subs = [];
         let subs_list = [];
         let unit_value = 1000;
-        soluton.used_area = Math.round(soluton.used_area) / unit_value / unit_value;
-        soluton.used_weight = Math.round(soluton.used_weight) / unit_value;
-        soluton.unused_area = Math.round(soluton.unused_area) / unit_value / unit_value;
-        soluton.unused_weight = Math.round(soluton.unused_weight) / unit_value;
+        // soluton.used_area = Math.round(soluton.used_area) / unit_value / unit_value;
+        // soluton.used_weight = Math.round(soluton.used_weight) / unit_value;
+        // soluton.unused_area = Math.round(soluton.unused_area) / unit_value / unit_value;
+        // soluton.unused_weight = Math.round(soluton.unused_weight) / unit_value;
         soluton.subs.forEach((item) => {
           let has = false;
           subs_list.forEach((sub) => {
-            if (sub.area == (Math.round(parseFloat(item.width)) / unit_value) * (Math.round(parseFloat(item.length)) / unit_value)) {
-              let w = ((Math.round(parseFloat(item.width)) / unit_value) * (Math.round(parseFloat(item.length)) / unit_value) / soluton.used_area) * soluton.used_weight;
+            if (sub.area == this.getRound(item.width, false) * this.getRound(item.length, false)) {
+              let w = (this.getRound(item.width, false) * this.getRound(item.length, false) / this.getRound(soluton.used_area, true)) * this.getRound(soluton.used_weight, false);
               sub.number += 1;
               sub.weight += Math.round(w * unit_value) / unit_value;
               has = true;
@@ -862,20 +868,20 @@ export default {
           });
 
           if (has == false) {
-            let w = ((Math.round(parseFloat(item.width)) / unit_value) * (Math.round(parseFloat(item.length)) / unit_value) / soluton.used_area) * soluton.used_weight;
+            let w = (this.getRound(item.width, false) * this.getRound(item.length, false) / this.getRound(soluton.used_area, true)) * this.getRound(soluton.used_weight, false);
             subs_list.push({
-              "area": (Math.round(parseFloat(item.width)) / unit_value) * (Math.round(parseFloat(item.length)) / unit_value),
-              "key": (Math.round(parseFloat(item.length)) / unit_value) + "X" + (Math.round(parseFloat(item.width)) / unit_value),
+              "area": this.getRound(item.width, false) * this.getRound(item.length, false),
+              "key": this.getRound(item.length, false) + "X" + this.getRound(item.width, false),
               "number": 1,
               "weight": Math.round(w * unit_value) / unit_value
             });
           }
 
           let tmpItem = {
-            x1: Math.round(parseFloat(item.x)) / unit_value,
-            y1: Math.round(parseFloat(item.y)) / unit_value,
-            x2: (Math.round(parseFloat(item.x)) / unit_value) + (Math.round(parseFloat(item.width)) / unit_value),
-            y2: (Math.round(parseFloat(item.y)) / unit_value) + (Math.round(parseFloat(item.length)) / unit_value),
+            x1: this.getRound(item.x, false),
+            y1: this.getRound(item.y, false),
+            x2: this.getRound(item.x, false) + this.getRound(item.width, false),
+            y2: this.getRound(item.y, false) + this.getRound(item.length, false),
           }
           subs.push(tmpItem);
         });
@@ -898,7 +904,7 @@ export default {
       // this.mode_data.result = response.data;
       if (response.data && response.data.status_name) {
         this.mode_data.result.statusName =
-        response.data.status_name.toLowerCase();
+          response.data.status_name.toLowerCase();
       }
       // 赋值待选方案
       if (response.data.data.solutions && response.data.data.solutions.length > 0) {
@@ -1033,51 +1039,51 @@ export default {
       return;
     },
     downloadCsv: function () {
-            if (!this.mode_data.result || !this.mode_data.result.solutions) {
-                console.log("downloadCsv: bigRolls are empty..");
-                return;
-            }
+      if (!this.mode_data.result || !this.mode_data.result.solutions) {
+        console.log("downloadCsv: bigRolls are empty..");
+        return;
+      }
 
-            // prepare data
-            let dataForCsv = [["序号", "有效面积", "有效重量", "使用率", "损耗面积", "损耗重量", "明细（规格*数量/重量）"]];
-            let numSmallRolls = 0;
+      // prepare data
+      let dataForCsv = [["序号", "有效面积", "有效重量", "使用率", "损耗面积", "损耗重量", "明细（规格*数量/重量）"]];
+      let numSmallRolls = 0;
 
-            const bigRolls = this.mode_data.result.data.solutions;
-            for (let i = 0; i < bigRolls.length; i++) {
-                // ['Stock #', 'Usage', 'Width of Cuts']
-                const nextRow = [
-                    i + 1,
-                    bigRolls[i].used_area ,
-                    bigRolls[i].used_weight,
-                    this.getPercentageUtilization(parseFloat(bigRolls[i].unused_area), parseFloat(bigRolls[i].used_area)) + "%",
-                    bigRolls[i].unused_area,
-                    bigRolls[i].unused_weight,
-                    bigRolls[i].subs_list.join(",")
-                ];
-                dataForCsv.push(nextRow);
-            }
-            const csvContent =
-                "data:text/csv;charset=utf-8," +
-                dataForCsv.map((e) => e.join(",")).join("\n");
-            // console.log('csvContent: ', csvContent);
+      const bigRolls = this.mode_data.result.data.solutions;
+      for (let i = 0; i < bigRolls.length; i++) {
+        // ['Stock #', 'Usage', 'Width of Cuts']
+        const nextRow = [
+          i + 1,
+          bigRolls[i].used_area,
+          bigRolls[i].used_weight,
+          this.getPercentageUtilization(parseFloat(bigRolls[i].unused_area), parseFloat(bigRolls[i].used_area)) + "%",
+          bigRolls[i].unused_area,
+          bigRolls[i].unused_weight,
+          bigRolls[i].subs_list.join(",")
+        ];
+        dataForCsv.push(nextRow);
+      }
+      const csvContent =
+        "data:text/csv;charset=utf-8," +
+        dataForCsv.map((e) => e.join(",")).join("\n");
+      // console.log('csvContent: ', csvContent);
 
-            // download the file
-            let encodedUri = encodeURI(csvContent);
-            // console.log('encodedUri: ', encodedUri);
-            let link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
+      // download the file
+      let encodedUri = encodeURI(csvContent);
+      // console.log('encodedUri: ', encodedUri);
+      let link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
 
-            // unique and identifiable filename
-            const d = new Date();
-            const dateString = `${d.getFullYear()}-${d.getMonth() + 1
-                }-${d.getUTCDate()}-${d.getHours()}${d.getMinutes()}-${d.getSeconds()}`;
+      // unique and identifiable filename
+      const d = new Date();
+      const dateString = `${d.getFullYear()}-${d.getMonth() + 1
+        }-${d.getUTCDate()}-${d.getHours()}${d.getMinutes()}-${d.getSeconds()}`;
 
-            const filename = `cuts_${numSmallRolls}_${dateString}.csv`;
-            link.setAttribute("download", filename);
+      const filename = `cuts_${numSmallRolls}_${dateString}.csv`;
+      link.setAttribute("download", filename);
 
-            document.body.appendChild(link); // Required for FF
-            link.click(); // This will download the data file named "my_data.csv".
-        },
+      document.body.appendChild(link); // Required for FF
+      link.click(); // This will download the data file named "my_data.csv".
+    },
   }
 }
 </script>

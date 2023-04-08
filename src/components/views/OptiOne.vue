@@ -4,8 +4,8 @@
             <v-col cols="1"></v-col>
             <v-col cols="5" md="5">
                 <base-material-card color="pink" icon="mdi-bullseye"
-                    title="每个输入项单位保持一致，支持精确3位小数。<br/>”边丝宽度“：卷两边的卡槽损耗的宽度。（根据情况设置，没有的填”0“）"
-                    :isDesc=true text="<span color='white'><b>母卷设置</b></span>" class="px-6 py-3">
+                    title="每个输入项单位保持一致，支持精确3位小数。<br/>”边丝宽度“：卷两边的卡槽损耗的宽度。（根据情况设置，没有的填”0“）" :isDesc=true
+                    text="<span color='white'><b>母卷设置</b></span>" class="px-6 py-3">
                     <v-simple-table>
                         <thead>
                             <tr>
@@ -136,7 +136,7 @@
                     class="px-5 py-3">
                     <v-row>
                         <v-col cols="2" v-for="(child_rolls, index) in mode_data.childs_for_select" v-bind:key="index">
-                            <v-simple-table class="theme--dark" dense @mouseover="hoverPlan(i)">
+                            <v-simple-table class="theme--dark font-weight-bold" dense @mouseover="hoverPlan(i)">
                                 <thead>
                                     <tr>
                                         <th>#</th>
@@ -175,7 +175,6 @@
                             </div>
                         </v-col>
                     </v-row>
-
                 </base-material-card>
             </v-col>
             <v-col cols="1"></v-col>
@@ -338,7 +337,7 @@ export default {
         dialog: false,
         selectedSolIndex: false,
         cutBtnDisabled: false,
-        side: 3,
+        side: 0,
         cutWidth: 0,
         number: 0,
         snackbar: false,
@@ -368,23 +367,21 @@ export default {
         wasteColor: "#7f8c8d",
         mode_data: {
             childs: [
-                { width: 120, quantity: 0, weight: 0 },
-                { width: 97, quantity: 0, weight: 0 },
-                { width: 87, quantity: 0, weight: 0 },
+                { width: 0, quantity: 0, weight: 0 },
             ],
-            parents: [{ width: 1200, quantity: 1, weight: 6 }],
+            parents: [{ width: 0, quantity: 0, weight: 0 }],
             result: null,
             childs_for_select: null,
         },
 
         headers: [{
-                text: '长度',
-                value: 'length'
-            },
-            {
-                text: '重量',
-                value: 'weight'
-            }],
+            text: '长度',
+            value: 'length'
+        },
+        {
+            text: '重量',
+            value: 'weight'
+        }],
         selections: [
         ],
         selected: [],
@@ -398,7 +395,7 @@ export default {
     created() {
         this.$vuetify.theme.dark = false
     },
-    destroyed() {
+    beforeDestroy() {
         this.$vuetify.theme.dark = true
     },
     methods: {
@@ -450,8 +447,8 @@ export default {
                 soluton.sub_weights.forEach((s) => {
                     subs_weight.push(Math.round(parseFloat(s)) / 1000);
                 });
-                let all_len = Math.round(parseFloat(soluton.parent_length))/1000;
-                let all_weight = Math.round(parseFloat(soluton.parent_weight))/1000;
+                let all_len = Math.round(parseFloat(soluton.parent_length)) / 1000;
+                let all_weight = Math.round(parseFloat(soluton.parent_weight)) / 1000;
                 rolls.push([parseFloat(soluton.un_used / 1000), subs, parseFloat(soluton.un_used_weight / 1000), subs_weight, all_len, all_weight]);
             });
 
@@ -489,11 +486,14 @@ export default {
             this.dialogSelect = false;
 
             this.selected.forEach((item) => {
+                if (this.mode_data.parents[0].width == 0) {
+                    this.mode_data.parents = [];
+                }
                 this.mode_data.parents.push({ width: item.length, quantity: 1, weight: item.weight });
             })
         },
         addSpec: function () {
-            let url_selection = "http://127.0.0.1:5001/api/save_spec";
+            let url_selection = "http://124.221.185.163:5001/api/save_spec";
             let config = {
                 headers: {
                     access_token: $cookies.get("access_token")
@@ -519,7 +519,7 @@ export default {
                 });
         },
         delSpec: function () {
-            let url_del = "http://127.0.0.1:5001/api/del_spec";
+            let url_del = "http://124.221.185.163:5001/api/del_spec";
             let config = {
                 headers: {
                     access_token: $cookies.get("access_token")
@@ -530,7 +530,7 @@ export default {
                 ids_del.push(item.id);
             })
             let del_ids = {
-                ids:ids_del
+                ids: ids_del
             };
             console.log(del_ids);
             axios.post(url_del, del_ids, config)
@@ -634,7 +634,7 @@ export default {
                 child.quantity = n;
             }
 
-            let url = 'http://127.0.0.1:5001/api/stocks_1d_by_weight';
+            let url = 'http://124.221.185.163:5001/api/stocks_1d_by_weight';
 
             this.disableCutBtn(true);
 
@@ -669,7 +669,7 @@ export default {
             this.disableCutBtn(true);
             let dataToSend = this.prepareDataToSend1DForRule();
             console.log(dataToSend);
-            let url = "http://127.0.0.1:5001/api/stocks_1d_by_len";
+            let url = "http://124.221.185.163:5001/api/stocks_1d_by_len";
             let config = {
                 headers: {
                     access_token: $cookies.get("access_token")
@@ -734,9 +734,9 @@ export default {
                     soluton.sub_weights.forEach((s) => {
                         subs_weight.push(Math.round(parseFloat(s)) / 1000);
                     });
-                    let all_len = Math.round(parseFloat(soluton.parent_length))/1000;
-                    let all_weight = Math.round(parseFloat(soluton.parent_weight))/1000;
-                    rolls.push([parseFloat(soluton.un_used / 1000), subs, parseFloat(soluton.un_used_weight / 1000), subs_weight,all_len,all_weight]);
+                    let all_len = Math.round(parseFloat(soluton.parent_length)) / 1000;
+                    let all_weight = Math.round(parseFloat(soluton.parent_weight)) / 1000;
+                    rolls.push([parseFloat(soluton.un_used / 1000), subs, parseFloat(soluton.un_used_weight / 1000), subs_weight, all_len, all_weight]);
                 });
 
                 this.mode_data.result.solutions = rolls;
@@ -985,7 +985,7 @@ export default {
             link.click(); // This will download the data file named "my_data.csv".
         },
         getSelections: function () {
-            let url_selection = "http://127.0.0.1:5001/api/get_spec/parentOne";
+            let url_selection = "http://124.221.185.163:5001/api/get_spec/parentOne";
             let config = {
                 headers: {
                     access_token: $cookies.get("access_token")
