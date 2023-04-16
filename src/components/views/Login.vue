@@ -17,7 +17,7 @@
           </template>
 
           <v-card-text class="text-center">
-            <v-row >
+            <v-row>
               <v-col cols="12" v-if="loginType == 'account'">
                 <v-text-field color="secondary" label="账号..." :rules="usernameValidation" v-model="loginName"
                   prepend-icon="mdi-account-outline" class="mt-10" />
@@ -51,7 +51,7 @@
                   prepend-icon="mdi-alert-decagram" />
               </v-col>
               <v-col cols="4">
-                <v-img :src="this.base64image" @click="reloadImg()"  height="40" width="120" contain></v-img>
+                <v-img :src="this.base64image" @click="reloadImg()" height="40" width="120" contain></v-img>
                 <div align="right">
                   <span class="font-weight-light" style="font-size: 8px; color: #3c4858" align="right">
                     <a :href="'#'" @click="reloadImg()" rel="noopener" class="secondary--text"
@@ -62,7 +62,7 @@
                 </div>
               </v-col>
             </v-row>
-<!--
+            <!--
             <v-row v-if="loginType == 'phone'">
               <v-col cols="12">
                 <v-text-field color="secondary" v-model="loginPhone" minLength="11" maxLength="11" label="手机号..."
@@ -132,7 +132,7 @@
 
 <script>
 import { v4 as uuidv4 } from 'uuid';
-import axios from 'axios'
+import {getCaptcha,reqLogin} from "../../utils/api";
 
 export default {
   name: 'PagesLogin',
@@ -190,7 +190,7 @@ export default {
       return [value => this.checkInput_forValidate(value) || "手机号或邮箱格式不对"]
     },
     passwordValidation: function () {
-      return [value => this.checkLen_forValidate(value,6) || "密码至少6位"]
+      return [value => this.checkLen_forValidate(value, 6) || "密码至少6位"]
     }
   },
   methods: {
@@ -216,7 +216,7 @@ export default {
       if (this.loginType == "account") {
         this.socials[0].disabled = false;
         this.socials[1].disabled = true;
-      }else{
+      } else {
         this.socials[0].disabled = true;
         this.socials[1].disabled = false;
       }
@@ -230,14 +230,15 @@ export default {
       }
       this.snackbarMsg = msg;
     },
-    reloadImg: function(){
+    reloadImg: function () {
       this.getImage();
     },
     getImage: function () {
-      let url = 'http://127.0.0.1:5001/api/captcha/' + this.loginuuid;
-      axios.get(url).then((response) => {
+      let url = '/captcha/' + this.loginuuid;
+      getCaptcha(url, {}).then(response => {
+        // 获取数据成功后的其他操作
         console.log(response);
-        this.base64image = "data:image/png;base64," + response.data.data;
+        this.base64image = "data:image/png;base64," + response.data;
         console.log(this.base64image);
       }).catch((error) => {
         console.log("Network/Server error");
@@ -273,7 +274,6 @@ export default {
       // let url_phone_email = "http://150.158.76.64:5000/api/login_email";
 
       if (this.loginType === "account") {
-        let url_login = 'http://127.0.0.1:5001/api/login';
         let login_data = {
           "username": this.loginName,
           "password": this.loginPassword,
@@ -299,18 +299,19 @@ export default {
             }
           }
         }
-
-        axios.post(url_login, login_data).then((response) => {
-          console.log(response);
-          if (response.data.code == 0) {
-            console.log(response.data.data.access_token);
-            this.$cookies.set("access_token", response.data.data.access_token);
+        reqLogin(login_data).then((response) => {
+          if (response.code == 0) {
+            this.$cookies.set("access_token", response.data.access_token);
+            this.$store.commit("setToken", response.data.access_token);
+            this.$store.commit("setUserName", response.data.user.account);
+            this.$store.commit("setUserType", response.data.user.user_type);
+            this.$store.commit("setUserStatus", true);
             this.logined = true;
-            this.$emit('func',this.logined);
+            this.$emit('func', this.logined);
             this.$router.replace('/pages/opti1d');
             return
           }
-          this.alertErr(true, response.data.msg);
+          this.alertErr(true, response.msg);
           return
         }).catch((error) => {
           console.log("Network/Server error");

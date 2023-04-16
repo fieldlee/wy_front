@@ -324,7 +324,7 @@
 
 <script>
 import * as d3 from "d3";
-import axios from 'axios'
+import { reqSaveSpec, reqDelSpec, getSpecOne, reqStockByWeight, reqStockByLen } from '../../utils/api';
 export default {
     name: 'OptiOnePage',
     components: {
@@ -493,23 +493,17 @@ export default {
             })
         },
         addSpec: function () {
-            let url_selection = "http://124.221.185.163:5001/api/save_spec";
-            let config = {
-                headers: {
-                    access_token: $cookies.get("access_token")
-                }
-            };
             this.addSpecInfo.length = parseFloat(this.addSpecInfo.length);
             this.addSpecInfo.weight = parseFloat(this.addSpecInfo.weight);
-            axios.post(url_selection, this.addSpecInfo, config)
+            reqSaveSpec(this.addSpecInfo)
                 .then((response) => {
                     this.dialogAdd = false;
-                    if (response.data.code == 0) {
+                    if (response.code == 0) {
                         this.getSelections();
                         this.selected = [];
                         return
                     }
-                    this.alertErr(true, response.data.msg);
+                    this.alertErr(true, response.msg);
                     return
                 })
                 .catch((error) => {
@@ -519,12 +513,6 @@ export default {
                 });
         },
         delSpec: function () {
-            let url_del = "http://124.221.185.163:5001/api/del_spec";
-            let config = {
-                headers: {
-                    access_token: $cookies.get("access_token")
-                }
-            };
             let ids_del = [];
             this.selected.forEach((item) => {
                 ids_del.push(item.id);
@@ -533,17 +521,16 @@ export default {
                 ids: ids_del
             };
             console.log(del_ids);
-            axios.post(url_del, del_ids, config)
-                .then((response) => {
-                    console.log(response);
-                    if (response.data.code == 0) {
-                        this.getSelections();
-                        this.selected = [];
-                        return
-                    }
-                    this.alertErr(true, response.data.msg);
+            reqDelSpec(del_ids).then((response) => {
+                console.log(response);
+                if (response.code == 0) {
+                    this.getSelections();
+                    this.selected = [];
                     return
-                })
+                }
+                this.alertErr(true, response.msg);
+                return
+            })
                 .catch((error) => {
                     this.alertErr(true, error.message);
                     return false;
@@ -633,30 +620,17 @@ export default {
                 let n = Math.round(parseFloat(child.weight) / s);
                 child.quantity = n;
             }
-
-            let url = 'http://124.221.185.163:5001/api/stocks_1d_by_weight';
-
             this.disableCutBtn(true);
-
             const dataToSend = this.prepareDataToSend1DForWeight();
-            console.log(dataToSend);
-            let config = {
-                headers: {
-                    access_token: $cookies.get("access_token")
+            reqStockByWeight(dataToSend).then((response) => {
+                console.log(response);
+                this.disableCutBtn(false);
+                if (response.code == 0) {
+                    this.displayResult(response);
+                    return
                 }
-            };
-
-            axios
-                .post(url, dataToSend, config)
-                .then((response) => {
-                    console.log(response);
-                    this.disableCutBtn(false);
-                    if (response.data.code == 0) {
-                        this.displayResult(response);
-                        return
-                    }
-                    this.alertErr(true, response.data.msg);
-                })
+                this.alertErr(true, response.msg);
+            })
                 .catch((error) => {
                     console.log(error);
                     this.disableCutBtn(false);
@@ -669,37 +643,30 @@ export default {
             this.disableCutBtn(true);
             let dataToSend = this.prepareDataToSend1DForRule();
             console.log(dataToSend);
-            let url = "http://124.221.185.163:5001/api/stocks_1d_by_len";
-            let config = {
-                headers: {
-                    access_token: $cookies.get("access_token")
-                }
-            };
             this.dialog = true;
-            axios.post(url, dataToSend, config)
-                .then((response) => {
-                    console.log(response);
-                    this.disableCutBtn(false);
-                    this.dialog = false;
-                    if (response.data.code == 0) {
-                        response.data.data.solutions.forEach((sol) => {
-                            if (sol.sub_child_solver.length > 0) {
-                                sol.sub_child_solver.forEach((rule) => {
-                                    rule.width = rule.width / 1000;
-                                })
-                            }
-                            // 计算浪费宽度
-                            let worstWidth = 0;
-                            sol.solutions.solutions.forEach((sud_sol) => {
-                                worstWidth += parseFloat(sud_sol.un_used);
-                            });
-                            sol.worstWidth = (worstWidth / 1000) + parseFloat(this.side);
+            reqStockByLen(dataToSend).then((response) => {
+                console.log(response);
+                this.disableCutBtn(false);
+                this.dialog = false;
+                if (response.code == 0) {
+                    response.data.solutions.forEach((sol) => {
+                        if (sol.sub_child_solver.length > 0) {
+                            sol.sub_child_solver.forEach((rule) => {
+                                rule.width = rule.width / 1000;
+                            })
+                        }
+                        // 计算浪费宽度
+                        let worstWidth = 0;
+                        sol.solutions.solutions.forEach((sud_sol) => {
+                            worstWidth += parseFloat(sud_sol.un_used);
                         });
-                        this.mode_data.childs_for_select = response.data.data.solutions;
-                        return
-                    }
-                    this.alertErr(true, response.data.msg);
-                })
+                        sol.worstWidth = (worstWidth / 1000) + parseFloat(this.side);
+                    });
+                    this.mode_data.childs_for_select = response.data.solutions;
+                    return
+                }
+                this.alertErr(true, response.msg);
+            })
                 .catch((error) => {
                     this.disableCutBtn(false);
                     this.dialog = false;
@@ -708,14 +675,14 @@ export default {
                 });
         },
         displayResult: function (response) {
-            if (response.data.data && response.data.data.status_name) {
-                if (response.data.data.status_name == "Error") {
+            if (response.data && response.data.status_name) {
+                if (response.data.status_name == "Error") {
                     this.alertErr(true, "服务计算超出母卷的长度，请重试！");
                     return false;
                 }
             }
 
-            this.mode_data.result = response.data;
+            this.mode_data.result = response;
 
             if (this.mode_data.result && this.mode_data.result.status_name) {
                 this.mode_data.result.statusName =
@@ -985,23 +952,16 @@ export default {
             link.click(); // This will download the data file named "my_data.csv".
         },
         getSelections: function () {
-            let url_selection = "http://124.221.185.163:5001/api/get_spec/parentOne";
-            let config = {
-                headers: {
-                    access_token: $cookies.get("access_token")
+            getSpecOne({}).then((response) => {
+                console.log(response);
+                if (response.code == 0) {
+                    this.selections = [];
+                    response.data.forEach((data) => this.selections.push(data))
+                    return false;
                 }
-            };
-            axios.get(url_selection, config)
-                .then((response) => {
-                    console.log(response);
-                    if (response.data.code == 0) {
-                        this.selections = [];
-                        response.data.data.forEach((data) => this.selections.push(data))
-                        return
-                    }
-                    this.alertErr(true, response.data.msg);
-                    return
-                })
+                this.alertErr(true, response.msg);
+                return false;
+            })
                 .catch((error) => {
                     this.alertErr(true, error.message);
                     return false;

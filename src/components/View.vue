@@ -37,7 +37,6 @@
       },
       methods: {
         getLoginedFromLogin(data){
-          console.log("view====",data);
           this.$emit('func',data);
         }
     }

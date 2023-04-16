@@ -82,7 +82,7 @@
 
 <script>
 import { v4 as uuidv4 } from 'uuid';
-import axios from 'axios'
+import {getCaptcha,reqSendSms,reqUpdatePswd,reqSendEmail} from '../../utils/api';
 
 export default {
   name: 'Forget',
@@ -163,10 +163,12 @@ export default {
       this.getImage();
     },
     getImage: function () {
-      let url = 'http://127.0.0.1:5001/api/captcha/' + this.loginuuid;
-      axios.get(url).then((response) => {
+      let url = '/captcha/' + this.loginuuid;
+
+      getCaptcha(url, {}).then(response => {
+        // 获取数据成功后的其他操作
         console.log(response);
-        this.base64image = "data:image/png;base64," + response.data.data;
+        this.base64image = "data:image/png;base64," + response.data;
         console.log(this.base64image);
       }).catch((error) => {
         console.log("Network/Server error");
@@ -194,8 +196,7 @@ export default {
             "vcode": this.imgCode,
             "uuid": this.loginuuid
         }
-        let send_phone = "http://127.0.0.1:5001/api/send_sms";
-        axios.post(send_phone, phone_obj).then((response) => {
+        reqSendSms(phone_obj).then((response) => {
           this.alertErr(false, "验证码已发送到您的手机，请查收并输入验证码！");
           return
         }).catch((error) => {
@@ -209,9 +210,7 @@ export default {
             "vcode": this.imgCode,
             "uuid": this.loginuuid
         }
-        console.log(email_obj);
-        let send_mail = "http://127.0.0.1:5001/api/send_email";
-        axios.post(send_mail, email_obj).then((response) => {
+        reqSendEmail(email_obj).then((response) => {
           this.alertErr(false, "验证码已发送到您的邮箱，请查收并输入验证码！");
           return
         }).catch((error) => {
@@ -221,7 +220,6 @@ export default {
       }
     },
     reset: function () {
-        let reset_url = 'http://127.0.0.1:5001/api/update_password';
         let reset_data = {
             "email": "",
             "phone": "",
@@ -243,14 +241,14 @@ export default {
             "password": this.loginPassword
           }
         }
-        console.log(reset_data);
-        axios.post(reset_url, reset_data).then((response) => {
-          if (response.data.code == 0) {
+
+        reqUpdatePswd(reset_data).then((response) => {
+          if (response.code == 0) {
             this.alertErr(false, "密码已修改，请重新登录！");
             this.$router.replace('/pages/login');
             return
           }
-          this.alertErr(true, response.data.msg);
+          this.alertErr(true, response.msg);
           return
         }).catch((error) => {
           this.alertErr(true, error);

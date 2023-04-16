@@ -186,7 +186,9 @@
 </template>
 
 <script>
-import axios from 'axios'
+
+import {reqSaveReport} from '../../utils/api';
+
 export default {
   name: 'PagesPricing',
 
@@ -285,8 +287,6 @@ export default {
       });
     },
     saveReport(){
-
-      let url_report = 'http://127.0.0.1:5001/api/save_report';
       if (this.reportInfo.phone == "" || this.reportInfo.email == ""){
         this.alertErr(true, "请留下您的联系方式");
         return ;
@@ -295,9 +295,8 @@ export default {
         this.alertErr(true, "请留下您的宝贵的建议");
         return ;
       }
-      axios.post(url_report, this.reportInfo).then((response) => {
-        console.log(response);
-          if (response.data.code == 0) {
+      reqSaveReport(this.reportInfo).then((response) => {
+          if (response.code == 0) {
             this.alertErr(false, "谢谢您的宝贵意见，我们会尽快查看您的反馈。");
             this.reportInfo.content = "";
             this.reportInfo.email = "";
@@ -305,7 +304,7 @@ export default {
             this.reportInfo.name = "";
             return
           }
-          this.alertErr(true, response.data.msg);
+          this.alertErr(true, response.msg);
           return
         }).catch((error) => {
           console.log("Network/Server error");

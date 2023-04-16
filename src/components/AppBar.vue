@@ -14,7 +14,7 @@
     </v-container>
 
 
- <v-menu bottom left min-width="200" offset-y origin="top right" transition="scale-transition" v-if="logined == true">
+    <v-menu bottom left min-width="200" offset-y origin="top right" transition="scale-transition" v-if="logined == true">
       <template v-slot:activator="{ attrs, on }">
         <v-btn min-width="0" text v-bind="attrs" v-on="on">
           <v-icon>mdi-account</v-icon>
@@ -25,8 +25,8 @@
         <template v-for="(p, i) in profile">
           <v-divider v-if="p.divider" :key="`divider-${i}`" class="mb-2 mt-2" />
 
-          <app-bar-item v-else :key="`item-${i}`" to="/" >
-            <v-list-item-title v-text="p.title" @click="logout"  />
+          <app-bar-item v-else :key="`item-${i}`" to="/">
+            <v-list-item-title v-text="p.title" @click="logout" />
           </app-bar-item>
         </template>
       </v-list>
@@ -65,20 +65,20 @@ export default {
   },
   props: { logined: Boolean },
   watch: {
-      logined(newVal, oldVal) {
-        // 值类型，可正常拿到
-        console.log('watch logined', newVal, oldVal)
-        this.logined = newVal;
-        this.resetItems();
-      },
+    logined(newVal, oldVal) {
+      // 值类型，可正常拿到
+      console.log('watch logined', newVal, oldVal)
+      this.logined = newVal;
+      this.resetItems();
+    },
   },
   created() {
-    console.log("appbar========",this.logined);
+    console.log("appbar========", this.logined);
     this.resetItems();
   },
   data: () => ({
 
- items: [
+    items: [
       {
         to: "/",
         icon: "mdi-view-dashboard",
@@ -93,6 +93,11 @@ export default {
         to: "/pages/optiarea",
         icon: "mdi-land-plots",
         text: "分块"
+      },
+      {
+        to: "/pages/calcute",
+        icon: "mdi-calculator-variant-outline",
+        text: "钢工具"
       },
       {
         to: "/pages/login",
@@ -112,12 +117,14 @@ export default {
       '/pages/register': '注册',
       '/pages/forget': '忘记密码',
       '/pages/opti1d': '分条切割方案',
-      '/pages/optiarea': '分块切割方案'
+      '/pages/optiarea': '分块切割方案',
+      '/pages/calcute': '钢材工具',
+      '/pages/pdftrans': 'PDF文档转换'
     },
     profile: [
-      { title: '设置常用',icon:"mdi-account"  },
+      { title: '设置常用', icon: "mdi-account" },
       { divider: true },
-      { title: '退出系统',icon:"mdi-account" }
+      { title: '退出系统', icon: "mdi-account" }
     ]
   }),
   computed: {
@@ -126,60 +133,79 @@ export default {
     }
   },
   methods: {
-    logout: function() {
+    logout: function () {
       this.logined = false;
       $cookies.remove("access_token");
       this.$router.replace('/pages/login');
       return;
     },
-    resetItems:function() {
+    resetItems: function () {
       if (this.logined == true) {
-      this.items = [
-      {
-              to: "/",
-              icon: "mdi-view-dashboard",
-              text: "首页"
-            },
-            {
-              to: "/pages/opti1d",
-              icon: "mdi-format-line-weight",
-              text: "分条"
-            },
-            {
-              to: "/pages/optiarea",
-              icon: "mdi-land-plots",
-              text: "分块"
-            }];
-    }
-    if (this.logined == false) {
         this.items = [
-      {
-        to: "/",
-        icon: "mdi-view-dashboard",
-        text: "首页"
-      },
-      {
-        to: "/pages/opti1d",
-        icon: "mdi-format-line-weight",
-        text: "分条"
-      },
-      {
-        to: "/pages/optiarea",
-        icon: "mdi-land-plots",
-        text: "分块"
-      },
-      {
-        to: "/pages/login",
-        icon: "mdi-fingerprint",
-        text: "登录"
-      },
-      {
-        to: "/pages/register",
-        icon: "mdi-account-multiple-plus",
-        text: "注册"
+          {
+            to: "/",
+            icon: "mdi-view-dashboard",
+            text: "首页"
+          },
+          {
+            to: "/pages/opti1d",
+            icon: "mdi-format-line-weight",
+            text: "分条"
+          },
+          {
+            to: "/pages/optiarea",
+            icon: "mdi-land-plots",
+            text: "分块"
+          },
+          {
+            to: "/pages/calcute",
+            icon: "mdi-calculator-variant-outline",
+            text: "钢工具"
+          }, {
+            to: "/pages/pdftrans",
+            icon: "mdi-file-arrow-left-right-outline",
+            text: "Pdf转换"
+          }];
       }
-    ];
-    }
+      if (this.logined == false) {
+        this.items = [
+          {
+            to: "/",
+            icon: "mdi-view-dashboard",
+            text: "首页"
+          },
+          {
+            to: "/pages/opti1d",
+            icon: "mdi-format-line-weight",
+            text: "分条"
+          },
+          {
+            to: "/pages/optiarea",
+            icon: "mdi-land-plots",
+            text: "分块"
+          },
+          {
+            to: "/pages/calcute",
+            icon: "mdi-calculator-variant-outline",
+            text: "钢工具"
+          },
+          {
+            to: "/pages/pdftrans",
+            icon: "mdi-file-arrow-left-right-outline",
+            text: "Pdf转换"
+          },
+          {
+            to: "/pages/login",
+            icon: "mdi-fingerprint",
+            text: "登录"
+          },
+          {
+            to: "/pages/register",
+            icon: "mdi-account-multiple-plus",
+            text: "注册"
+          }
+        ];
+      }
     }
   }
 

@@ -4,7 +4,7 @@ import Router from 'vue-router'
 
 Vue.use(Router)
 
-const router =  new Router({
+const router = new Router({
   mode: 'history',
   base: process.env.BASE_URL,
   routes: [
@@ -47,6 +47,28 @@ const router =  new Router({
           name: 'OptiArea',
           path: 'optiarea',
           component: () => import('@/components/views/OptiArea')
+        },
+        {
+          name: 'Calcute',
+          path: 'calcute',
+          component: () => import('@/components/views/Calcute'),
+          children: [
+            {
+              name: 'Coil',
+              path: 'coil',
+              component: () => import('@/components/views/calcutes/coil')
+            },
+            {
+              name: 'Plate',
+              path: 'plate',
+              component: () => import('@/components/views/calcutes/plate')
+            }
+          ]
+        },
+        {
+          name: 'PdfTrans',
+          path: 'pdftrans',
+          component: () => import('@/components/views/Pdf')
         },
         {
           name: 'Forget',

@@ -356,7 +356,7 @@
 
 <script>
 import * as d3 from "d3";
-import axios from 'axios'
+import {reqSaveSpec,getSpecArea,reqStock2DByWeight,reqStock2DByArea} from '../../utils/api'
 export default {
   name: 'OptiAreaPage',
   components: {
@@ -489,24 +489,18 @@ export default {
       });
     },
     addSpec: function () {
-      let url_selection = "http://124.221.185.163:5001/api/save_spec";
-      let config = {
-        headers: {
-          access_token: $cookies.get("access_token")
-        }
-      };
       this.addSpecInfo.length = parseFloat(this.addSpecInfo.length);
       this.addSpecInfo.width = parseFloat(this.addSpecInfo.width);
       this.addSpecInfo.weight = parseFloat(this.addSpecInfo.weight);
-      axios.post(url_selection, this.addSpecInfo, config)
+      reqSaveSpec(this.addSpecInfo)
         .then((response) => {
           this.dialogAdd = false;
-          if (response.data.code == 0) {
+          if (response.code == 0) {
             this.getSelections();
             this.selected = [];
             return
           }
-          this.alertErr("error", response.data.msg);
+          this.alertErr("error", response.msg);
           return
         })
         .catch((error) => {
@@ -529,21 +523,14 @@ export default {
       })
     },
     getSelections: function () {
-      let url_selection = "http://124.221.185.163:5001/api/get_spec/parentArea";
-      let config = {
-        headers: {
-          access_token: $cookies.get("access_token")
-        }
-      };
-      axios.get(url_selection, config)
-        .then((response) => {
+      getSpecArea({}).then((response) => {
           console.log(response);
-          if (response.data.code == 0) {
+          if (response.code == 0) {
             this.selections = [];
-            response.data.data.forEach((data) => this.selections.push(data))
+            response.data.forEach((data) => this.selections.push(data))
             return
           }
-          this.alertErr("error", response.data.msg);
+          this.alertErr("error", response.msg);
           return
         })
         .catch((error) => {
@@ -733,33 +720,26 @@ export default {
           }
         }
       }
-      let url = 'http://124.221.185.163:5001/api/stocks_2d_by_weight';
       const dataToSend = this.prepareDataToSend2DForWeight(typeCut);
       if (dataToSend == false) {
         return
       }
       console.log(dataToSend);
       this.disableCutBtn(true);
-      let config = {
-        headers: {
-          access_token: $cookies.get("access_token")
-        }
-      };
       this.dialog = true;
-      axios
-        .post(url, dataToSend, config)
+      reqStock2DByWeight(dataToSend)
         .then((response) => {
           console.log(response);
           this.dialog = false;
           this.disableCutBtn(false);
-          if (response.data.code == 0) {
-            if (response.data.data && response.data.data.status_name) {
-              if (response.data.data.status_name == "Error") {
+          if (response.code == 0) {
+            if (response.data && response.data.status_name) {
+              if (response.data.status_name == "Error") {
                 this.alertErr("error", "服务计算超出母卷的面积，请修改子卷重量或数量后重试！");
                 return false;
               }
             }
-            this.mode_data.result = response.data;
+            this.mode_data.result = response;
             if (this.mode_data.result && this.mode_data.result.status_name) {
               this.mode_data.result.statusName =
                 this.mode_data.result.status_name.toLowerCase();
@@ -767,7 +747,7 @@ export default {
             this.displayResult();
             return
           }
-          this.alertErr("error", response.data.msg);
+          this.alertErr("error", response.msg);
         })
         .catch((error) => {
           this.dialog = false;
@@ -812,30 +792,23 @@ export default {
           return false;
         }
       }
-      let url = 'http://124.221.185.163:5001/api/stocks_2d_by_area';
       const dataToSend = this.prepareDataToSend2DForRule();
       if (dataToSend == false) {
         return
       }
       console.log(dataToSend);
       this.disableCutBtn(true);
-      let config = {
-        headers: {
-          access_token: $cookies.get("access_token")
-        }
-      };
       this.dialog = true;
-      axios
-        .post(url, dataToSend, config)
+      reqStock2DByArea(dataToSend)
         .then((response) => {
           console.log(response);
           this.dialog = false;
           this.disableCutBtn(false);
-          if (response.data.code == 0) {
+          if (response.code == 0) {
             this.displayRulesResult(response);
             return
           }
-          this.alertErr("error", response.data.msg);
+          this.alertErr("error", response.msg);
         })
         .catch((error) => {
           this.dialog = false;
@@ -902,13 +875,13 @@ export default {
     },
     displayRulesResult: function (response) {
       // this.mode_data.result = response.data;
-      if (response.data && response.data.status_name) {
+      if (response && response.status_name) {
         this.mode_data.result.statusName =
           response.data.status_name.toLowerCase();
       }
       // 赋值待选方案
-      if (response.data.data.solutions && response.data.data.solutions.length > 0) {
-        this.mode_data.childs_for_select = response.data.data.solutions;
+      if (response.data.solutions && response.data.solutions.length > 0) {
+        this.mode_data.childs_for_select = response.data.solutions;
       }
     },
     draw2d: function () {

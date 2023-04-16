@@ -31,7 +31,6 @@
     },
     methods: {
       getLoginedFromLogin(data){
-        console.log("index=====",data);
         this.logined = data;
       },
       getLogined() {
