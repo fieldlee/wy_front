@@ -25,13 +25,9 @@ export const getSpecOne = p => get('/get_spec/parentOne', p);
 export const getSpecArea = p => get('/get_spec/parentArea', p);
 //按照重量计算
 export const reqStockByWeight = p => post('/stocks_1d_by_weight', p);
-//按照规格计算
-export const reqStockByLen = p => post('/stocks_1d_by_len', p);
-//按照重量计算
-export const reqStock2DByWeight = p => post('/stocks_2d_by_weight', p);
-//按照重量计算
-export const reqStock2DByArea = p => post('/stocks_2d_by_area', p);
 
+export const reqStockByLen = p => post('/stocks_1d_by_len', p); //按照规格计算
 
+export const reqStock2DByWeight = p => post('/stocks_2d_by_weight', p); //按照重量计算
 
-
+export const reqStock2DByArea = p => post('/stocks_2d_by_area', p, { timeout: 3000000 }); //按照重量计算,计算超时时间 5分钟

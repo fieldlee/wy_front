@@ -47,16 +47,16 @@
                     </v-simple-table>
                     <v-row>
                         <v-col cols="1" />
-                        <v-col cols="8">
+                        <v-col cols="4">
                             <v-text-field color="secondary" v-model="side" label="边丝宽度" type="number"
                                 prepend-icon="mdi-arrow-expand-horizontal">
                             </v-text-field>
                         </v-col>
-                        <!-- <v-col cols="4">
-                            <v-text-field color="secondary" v-model="cutWidth" label="切割宽度" type="number"
-                                prepend-icon="mdi-zip-box-outline">
+                        <v-col cols="4">
+                            <v-text-field color="secondary" v-model="percent" label="期望最低使用率" type="number" suffix="%"
+                                prepend-icon="mdi-percent-box-outline">
                             </v-text-field>
-                        </v-col> -->
+                        </v-col>
                         <v-col cols="3">
                             <v-card-actions class="pl-0 text-right">
                                 <v-btn color="success" min-width="100" max-width="30" @click="selectSpec()">
@@ -248,9 +248,9 @@
         </v-row>
         <!---对话框-->
         <base-material-snackbar v-model="snackbar" :timeout="2000" :type="color" v-bind="{
-            top: true,
-            center: true
-        }">
+                top: true,
+                center: true
+            }">
             <span class="font-weight-bold">{{ snackbarMsg }}</span>
         </base-material-snackbar>
         <!---loading-->
@@ -339,6 +339,7 @@ export default {
         cutBtnDisabled: false,
         side: 0,
         cutWidth: 0,
+        percent: 99.0,
         number: 0,
         snackbar: false,
         color: "info",
@@ -553,7 +554,8 @@ export default {
                 parent_rolls: newParents,
                 side: parseInt(parseFloat(this.cutWidth) * 1000),
                 out_side: parseInt(parseFloat(this.side) * 1000),
-                seed: Math.round(Math.random() * 10)
+                seed: Math.round(Math.random() * 10),
+                percent: this.percent,
             };
         },
         prepareDataToSend1DForWeight: function () {
@@ -609,6 +611,13 @@ export default {
                     this.alertErr(true, "请输入子卷的宽度！");
                     return false;
                 }
+            }
+            if (this.percent < 95) {
+                this.alertErr("warning", "期望最小使用率有点低哦！");
+            }
+            if (this.percent >= 100) {
+                this.alertErr("error", "期望最小使用率太高了哦！做不到");
+                return false;
             }
             this.mode_data.parents.forEach((parent) => {
                 parent_width += parseFloat(parent.width) * parseFloat(parent.quantity);

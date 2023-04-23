@@ -50,12 +50,17 @@
           </v-simple-table>
           <v-row>
             <v-col cols="1" />
-            <v-col cols="7">
+            <v-col cols="4">
               <v-text-field color="secondary" v-model="cutWidth" label="切割宽度" type="number"
                 prepend-icon="mdi-zip-box-outline">
               </v-text-field>
             </v-col>
             <v-col cols="4">
+              <v-text-field color="secondary" v-model="percent" label="期望最低使用率" type="number" suffix="%"
+                prepend-icon="mdi-percent-box-outline">
+              </v-text-field>
+            </v-col>
+            <v-col cols="3">
               <v-card-actions class="pl-0 text-right">
                 <v-btn color="success" min-width="100" max-width="30" @click="selectSpec()">
                   选择常用规格
@@ -279,9 +284,9 @@
 
     <!---对话框-->
     <base-material-snackbar v-model="snackbar" :timeout="2000" :type="color" v-bind="{
-      top: true,
-      center: true
-    }">
+        top: true,
+        center: true
+      }">
       <span class="font-weight-bold">{{ snackbarMsg }}</span>
     </base-material-snackbar>
     <!---loading-->
@@ -356,7 +361,7 @@
 
 <script>
 import * as d3 from "d3";
-import {reqSaveSpec,getSpecArea,reqStock2DByWeight,reqStock2DByArea} from '../../utils/api'
+import { reqSaveSpec, getSpecArea, reqStock2DByWeight, reqStock2DByArea } from '../../utils/api'
 export default {
   name: 'OptiAreaPage',
   components: {
@@ -367,6 +372,7 @@ export default {
     dialogSelect: false,
     dialog: false,
     cutWidth: 0,
+    percent: 99.0,
     snackbar: false,
     color: "info",
     snackbarMsg: "",
@@ -524,15 +530,15 @@ export default {
     },
     getSelections: function () {
       getSpecArea({}).then((response) => {
-          console.log(response);
-          if (response.code == 0) {
-            this.selections = [];
-            response.data.forEach((data) => this.selections.push(data))
-            return
-          }
-          this.alertErr("error", response.msg);
+        console.log(response);
+        if (response.code == 0) {
+          this.selections = [];
+          response.data.forEach((data) => this.selections.push(data))
           return
-        })
+        }
+        this.alertErr("error", response.msg);
+        return
+      })
         .catch((error) => {
           this.alertErr("error", error.message);
           return false;
@@ -654,7 +660,8 @@ export default {
         child_areas: newChilds,
         parent_areas: newParents,
         side: parseInt(parseFloat(this.cutWidth) * 1000),
-        seed: Math.round(Math.random() * 10)
+        seed: Math.round(Math.random() * 10),
+        percent:this.percent,
       };
     },
     prepareDataToSend2DForRule: function () {
@@ -670,7 +677,8 @@ export default {
         child_areas: newChilds,
         parent_areas: newParents,
         side: parseInt(parseFloat(this.cutWidth) * 1000),
-        seed: Math.round(Math.random() * 10)
+        seed: Math.round(Math.random() * 10),
+        percent: this.percent,
       };
     },
     sendCutSheet: function (typeCut) {
@@ -791,6 +799,14 @@ export default {
           this.alertErr("error", "请输入子卷的宽度！");
           return false;
         }
+      }
+
+      if (this.percent < 90) {
+        this.alertErr("warning", "期望最小使用率有点低哦！");
+      }
+      if (this.percent >= 100) {
+        this.alertErr("error", "期望最小使用率太高了哦！做不到");
+        return false;
       }
       const dataToSend = this.prepareDataToSend2DForRule();
       if (dataToSend == false) {
