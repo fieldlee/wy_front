@@ -2,17 +2,18 @@
   <v-container id="login" fill-height tag="section">
     <v-row justify="center">
       <v-slide-y-transition appear>
-        <base-material-card color="success" light max-width="100%" width="400" class="px-5 py-3">
+        <base-material-card color="success" light max-width="100%" width="450" class="px-5 py-3">
           <template v-slot:heading>
             <div class="text-center">
-              <h1 class="display-2 font-weight-bold mb-2">
+              <h1 class="display-2 font-weight-bold mb-3">
                 登录
               </h1>
-              <v-btn v-for="(social, i) in socials" :key="i" :disabled="social.disabled"
-                :color="social.type == getTypeColor() ? '#66BB6A' : '#81C784'" class="ma-1" rel="noopener" depressed
-                rounded @click="setLoginType(social.type)">
-                <v-icon v-text="social.icon" />
-              </v-btn>
+              <v-btn-toggle v-model="loginType" color="deep-purple-accent-3" variant="outlined" divided rounded>
+                <v-btn v-for="(social, i) in socials" :key="i" :value="social.type" color="success">
+                  <v-icon start size="default" v-text="social.icon" />
+                  {{ social.text }}
+                </v-btn>
+              </v-btn-toggle>
             </div>
           </template>
 
@@ -20,19 +21,15 @@
             <v-row>
               <v-col cols="12" v-if="loginType == 'account'">
                 <v-text-field color="secondary" label="账号..." :rules="usernameValidation" v-model="loginName"
-                  prepend-icon="mdi-account-outline" class="mt-10" />
-                <div align="right">
-                  <span class="font-weight-light" style="font-size: 12px; color: #3c4858" align="right">
-                    <a :href="'#'" @click="setLoginType('phoneOrmail')" rel="noopener" class="secondary--text"
-                      style="text-decoration:none;">
-                      忘记账号
-                    </a>
-                  </span>
-                </div>
+                  prepend-icon="mdi-account-outline" />
               </v-col>
-              <v-col cols="12" v-if="loginType != 'account'">
-                <v-text-field color="secondary" label="手机号或邮箱..." v-model="phoneOrmail" :rules="emailValidation"
-                  prepend-icon="mdi-file-phone-outline" />
+              <v-col cols="12" v-if="loginType == 'email'">
+                <v-text-field color="secondary" label="邮箱..." v-model="logineMail" :rules="emailValidation"
+                  prepend-icon="mdi-email" />
+              </v-col>
+              <v-col cols="12" v-if="loginType == 'phone'">
+                <v-text-field color="secondary" v-model="loginPhone" minLength="11" maxLength="11" label="手机号..."
+                  prepend-icon="mdi-phone" :rules="emailValidation" />
               </v-col>
               <v-col cols="12">
                 <v-text-field label="密码..." :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'" :rules="passwordValidation"
@@ -62,53 +59,6 @@
                 </div>
               </v-col>
             </v-row>
-            <!--
-            <v-row v-if="loginType == 'phone'">
-              <v-col cols="12">
-                <v-text-field color="secondary" v-model="loginPhone" minLength="11" maxLength="11" label="手机号..."
-                  prepend-icon="mdi-phone" />
-              </v-col>
-
-              <v-col cols="8">
-                <v-text-field color="secondary" v-model="loginImgCode" label="图片验证码..."
-                  prepend-icon="mdi-alert-decagram" />
-              </v-col>
-              <v-col cols="4">
-                <v-img :src="this.base64image" height="40" contain></v-img>
-              </v-col>
-              <v-col cols="8">
-                <v-text-field color="secondary" v-model="loginValidCode" label="验证码..." prepend-icon="mdi-alert-box" />
-              </v-col>
-              <v-col cols="4">
-                <v-btn :color="'#66BB6A'" class="ma-1" rel="noopener" depressed rounded @click="sendValidCode()">
-                  验证码
-                </v-btn>
-              </v-col>
-            </v-row>
-
-            <v-row v-if="loginType == 'email'">
-              <v-col cols="12">
-                <v-text-field color="secondary" v-model="logineMail" type="email" label="邮箱..."
-                  prepend-icon="mdi-email" />
-              </v-col>
-              <v-col cols="8">
-                <v-text-field color="secondary" v-model="loginImgCode" label="图片验证码..."
-                  prepend-icon="mdi-alert-decagram" />
-              </v-col>
-              <v-col cols="4">
-                <v-img :src="this.base64image" height="40" contain></v-img>
-              </v-col>
-              <v-col cols="8">
-                <v-text-field color="secondary" v-model="loginValidCode" label="验证码..." prepend-icon="mdi-alert-box" />
-              </v-col>
-              <v-col cols="4">
-                <v-btn :color="'#66BB6A'" class="ma-1" rel="noopener" depressed rounded @click="sendEmail()">
-                  验证码
-                </v-btn>
-              </v-col>
-            </v-row>
-          -->
-
             <pages-btn large color="" @click="login()" depressed class="v-btn--text success--text">
               登录
             </pages-btn>
@@ -132,7 +82,7 @@
 
 <script>
 import { v4 as uuidv4 } from 'uuid';
-import {getCaptcha,reqLogin} from "../../utils/api";
+import { getCaptcha, reqLogin } from "../../utils/api";
 
 export default {
   name: 'PagesLogin',
@@ -151,6 +101,7 @@ export default {
       logined: false,
       show: false,
       isShowSlide: false,
+      phoneOrmail: "",
       loginName: "",
       loginPassword: "",
       loginPhone: "",
@@ -166,14 +117,23 @@ export default {
       socials: [
         {
           href: '#',
-          icon: 'mdi-file-phone-outline',
-          type: "phoneOrmail",
+          icon: 'mdi-phone',
+          type: "phone",
+          text: "手机",
+          disabled: true,
+        },
+        {
+          href: '#',
+          icon: 'mdi-email',
+          type: "email",
+          text: "邮箱",
           disabled: true,
         },
         {
           href: '#',
           icon: 'mdi-account',
           type: "account",
+          text: "账号",
           disabled: false,
         }
       ]
@@ -210,16 +170,6 @@ export default {
         return true;
       }
       return false;
-    },
-    setLoginType: function (type) {
-      this.loginType = type;
-      if (this.loginType == "account") {
-        this.socials[0].disabled = false;
-        this.socials[1].disabled = true;
-      } else {
-        this.socials[0].disabled = true;
-        this.socials[1].disabled = false;
-      }
     },
     alertErr: function (error, msg) {
       this.snackbar = true;
@@ -269,59 +219,57 @@ export default {
       return '手机号码或邮箱格式不正确，请重新填写';
     },
     login: function () {
-
-      // let url_phone_login = "http://150.158.76.64:5000/api/login_phone";
-      // let url_phone_email = "http://150.158.76.64:5000/api/login_email";
-
+      let login_data = {};
       if (this.loginType === "account") {
-        let login_data = {
+        login_data = {
           "username": this.loginName,
           "password": this.loginPassword,
           "vcode": this.loginImgCode,
           "uuid": this.loginuuid
         };
+      }
         // 手机或邮箱登录
-        if (this.loginType != "account") {
-          if (this.checkInput(this.phoneOrmail) == "phone") {
-            login_data = {
-              "phone": this.phoneOrmail,
-              "password": this.loginPassword,
-              "vcode": this.loginImgCode,
-              "uuid": this.loginuuid
-            }
-          }
-          if (this.checkInput(this.phoneOrmail) == "email") {
-            login_data = {
-              "email": this.phoneOrmail,
-              "password": this.loginPassword,
-              "vcode": this.loginImgCode,
-              "uuid": this.loginuuid
-            }
-          }
+        if (this.loginType == "email") {
+          login_data = {
+            "email": this.logineMail,
+            "password": this.loginPassword,
+            "vcode": this.loginImgCode,
+            "uuid": this.loginuuid
+          };
         }
-        reqLogin(login_data).then((response) => {
-          if (response.code == 0) {
-            this.$cookies.set("access_token", response.data.access_token);
-            this.$store.commit("setToken", response.data.access_token);
-            this.$store.commit("setUserName", response.data.user.account);
-            this.$store.commit("setUserType", response.data.user.user_type);
-            this.$store.commit("setUserStatus", true);
-            this.logined = true;
-            this.$emit('func', this.logined);
-            this.$router.replace('/pages/opti1d');
-            return
-          }
-          this.alertErr(true, response.msg);
-          return
-        }).catch((error) => {
-          console.log("Network/Server error");
-          console.error(error);
-          this.alertErr(true, error);
-          return
-        });
+
+      if (this.loginType == "phone") {
+        login_data = {
+          "phone": this.loginPhone,
+          "password": this.loginPassword,
+          "vcode": this.loginImgCode,
+          "uuid": this.loginuuid
+        };
       }
 
+      console.log(login_data);
+
+      reqLogin(login_data).then((response) => {
+        if (response.code == 0) {
+          this.$cookies.set("access_token", response.data.access_token);
+          this.$store.commit("setToken", response.data.access_token);
+          this.$store.commit("setUserName", response.data.user.account);
+          this.$store.commit("setUserType", response.data.user.user_type);
+          this.$store.commit("setUserStatus", true);
+          this.logined = true;
+          this.$emit('func', this.logined);
+          this.$router.replace('/pages/opti1d');
+          return
+        }
+        this.alertErr(true, response.msg);
+        return
+      }).catch((error) => {
+        console.log("Network/Server error");
+        console.error(error);
+        this.alertErr(true, error);
+        return
+      });
     }
-  }
+}
 }
 </script>

@@ -11,7 +11,7 @@ if (process.env.NODE_ENV === 'development') {
 } else if (process.env.NODE_ENV === 'debug') {
     axios.defaults.baseURL = 'http://127.0.0.1:5001/api';
 } else if (process.env.NODE_ENV === 'production') {
-    axios.defaults.baseURL = 'http://127.0.0.1:5001/api';
+    axios.defaults.baseURL = 'http://www.wanyeel.com:5001/api';
 }
 
 // 请求超时时间

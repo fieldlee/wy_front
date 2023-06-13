@@ -97,7 +97,7 @@ export default {
       {
         to: "/pages/calcute",
         icon: "mdi-calculator-variant-outline",
-        text: "钢工具"
+        text: "钢材工具"
       },
       {
         to: "/pages/login",
@@ -160,7 +160,7 @@ export default {
           {
             to: "/pages/calcute",
             icon: "mdi-calculator-variant-outline",
-            text: "钢工具"
+            text: "钢材工具"
           }, {
             to: "/pages/pdftrans",
             icon: "mdi-file-arrow-left-right-outline",
@@ -187,7 +187,7 @@ export default {
           {
             to: "/pages/calcute",
             icon: "mdi-calculator-variant-outline",
-            text: "钢工具"
+            text: "钢材工具"
           },
           {
             to: "/pages/pdftrans",

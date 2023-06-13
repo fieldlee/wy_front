@@ -54,6 +54,11 @@ const router = new Router({
           component: () => import('@/components/views/Calcute'),
           children: [
             {
+              name: '',
+              path: '',
+              component: () => import('@/components/views/calcutes/coil')
+            },
+            {
               name: 'Coil',
               path: 'coil',
               component: () => import('@/components/views/calcutes/coil')
@@ -62,6 +67,16 @@ const router = new Router({
               name: 'Plate',
               path: 'plate',
               component: () => import('@/components/views/calcutes/plate')
+            },
+            {
+              name: 'Dish',
+              path: 'dish',
+              component: () => import('@/components/views/calcutes/dish')
+            },
+            {
+              name: 'Thread',
+              path: 'thread',
+              component: () => import('@/components/views/calcutes/thread')
             }
           ]
         },
