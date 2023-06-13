@@ -247,14 +247,16 @@ export default {
         };
       }
 
-      console.log(login_data);
 
       reqLogin(login_data).then((response) => {
+        console.log(response);
         if (response.code == 0) {
           this.$cookies.set("access_token", response.data.access_token);
           this.$store.commit("setToken", response.data.access_token);
           this.$store.commit("setUserName", response.data.user.account);
           this.$store.commit("setUserType", response.data.user.user_type);
+          this.$store.commit("setTryCount", response.data.user.try_count);
+          this.$store.commit("setExpired", response.data.user.expired_at);
           this.$store.commit("setUserStatus", true);
           this.logined = true;
           this.$emit('func', this.logined);

@@ -14,10 +14,15 @@
     </v-container>
 
 
-    <v-menu bottom left min-width="200" offset-y origin="top right" transition="scale-transition" v-if="logined == true">
+    <v-menu bottom left min-width="300" offset-y origin="top right" transition="scale-transition" v-if="logined == true">
       <template v-slot:activator="{ attrs, on }">
         <v-btn min-width="0" text v-bind="attrs" v-on="on">
-          <v-icon>mdi-account</v-icon>
+          <v-badge color="red" overlap>
+            <template v-slot:badge>
+              <span class="caption">{{ labelVip }}</span>
+            </template>
+            <v-icon>mdi-account</v-icon>
+          </v-badge>
         </v-btn>
       </template>
 
@@ -31,7 +36,7 @@
         </template>
       </v-list>
     </v-menu>
-
+    <v-spacer />
   </v-app-bar>
 </template>
 
@@ -67,17 +72,15 @@ export default {
   watch: {
     logined(newVal, oldVal) {
       // 值类型，可正常拿到
-      console.log('watch logined', newVal, oldVal)
       this.logined = newVal;
       this.resetItems();
     },
   },
   created() {
-    console.log("appbar========", this.logined);
     this.resetItems();
   },
   data: () => ({
-
+    labelVip:"",
     items: [
       {
         to: "/",
@@ -122,8 +125,6 @@ export default {
       '/pages/pdftrans': 'PDF文档转换'
     },
     profile: [
-      { title: '设置常用', icon: "mdi-account" },
-      { divider: true },
       { title: '退出系统', icon: "mdi-account" }
     ]
   }),
@@ -134,13 +135,46 @@ export default {
   },
   methods: {
     logout: function () {
+      //  删除本地存储
+      localStorage.removeItem('userType');
+      localStorage.removeItem('tryCount');
+      localStorage.removeItem('account');
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('expired');
       this.logined = false;
+
       $cookies.remove("access_token");
+
+      this.resetItems();
+
       this.$router.replace('/pages/login');
       return;
     },
     resetItems: function () {
       if (this.logined == true) {
+        let userType = localStorage.getItem('userType');
+        if (userType == "Simple") {
+          this.labelVip = "试用";
+        }
+        if (userType == "Month") {
+          this.labelVip = "月度会员";
+        }
+        if (userType == "ThreeMonth") {
+          this.labelVip = "季度会员";
+        }
+        if (userType == "SixMonth") {
+          this.labelVip = "半年会员";
+        }
+        if (userType == "Year") {
+          this.labelVip = "年度会员";
+        }
+        if (userType == "All") {
+          this.labelVip = "终身会员";
+        }
+        // userType
+        // tryCount
+        // account
+
         this.items = [
           {
             to: "/",
