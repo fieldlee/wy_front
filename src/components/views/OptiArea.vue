@@ -284,9 +284,9 @@
 
     <!---对话框-->
     <base-material-snackbar v-model="snackbar" :timeout="2000" :type="color" v-bind="{
-        top: true,
-        center: true
-      }">
+      top: true,
+      center: true
+    }">
       <span class="font-weight-bold">{{ snackbarMsg }}</span>
     </base-material-snackbar>
     <!---loading-->
@@ -356,6 +356,22 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <!---选择会员-->
+    <v-dialog v-model="dialogVip" scrollable width="850">
+      <v-card>
+        <v-toolbar color="info">
+          <v-toolbar-title>请选择适合您的会员</v-toolbar-title>
+        </v-toolbar>
+        <v-divider></v-divider>
+        <vip-plan></vip-plan>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-btn color="blue-darken-1" variant="text" @click="dialogVip = false">
+            关闭
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -365,11 +381,13 @@ import { reqSaveSpec, getSpecArea, reqStock2DByWeight, reqStock2DByArea } from '
 export default {
   name: 'OptiAreaPage',
   components: {
-    PagesBtn: () => import('../elements/Btn.vue')
+    PagesBtn: () => import('../elements/Btn.vue'),
+    VipPlan: () => import('../elements/Plan.vue')
   },
   data: () => ({
     dialogAdd: false,
     dialogSelect: false,
+    dialogVip: false,
     dialog: false,
     cutWidth: 0,
     percent: 99.0,
@@ -661,7 +679,7 @@ export default {
         parent_areas: newParents,
         side: parseInt(parseFloat(this.cutWidth) * 1000),
         seed: Math.round(Math.random() * 10),
-        percent:this.percent,
+        percent: this.percent,
       };
     },
     prepareDataToSend2DForRule: function () {
@@ -756,6 +774,11 @@ export default {
             return
           }
           this.alertErr("error", response.msg);
+          //提示购买会员
+          if (response.code == -2) {
+            this.dialogVip = true;
+            return
+          }
         })
         .catch((error) => {
           this.dialog = false;
@@ -825,6 +848,11 @@ export default {
             return
           }
           this.alertErr("error", response.msg);
+          //提示购买会员
+          if (response.code == -2) {
+            this.dialogVip = true;
+            return
+          }
         })
         .catch((error) => {
           this.dialog = false;

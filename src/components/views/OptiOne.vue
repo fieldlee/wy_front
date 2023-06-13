@@ -319,6 +319,22 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+        <!---选择会员-->
+        <v-dialog v-model="dialogVip" scrollable width="850">
+            <v-card>
+                <v-toolbar color="info">
+                    <v-toolbar-title>请选择适合您的会员</v-toolbar-title>
+                </v-toolbar>
+                <v-divider></v-divider>
+                <vip-plan></vip-plan>
+                <v-divider></v-divider>
+                <v-card-actions>
+                    <v-btn color="blue-darken-1" variant="text" @click="dialogVip = false">
+                        关闭
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-container>
 </template>
 
@@ -328,12 +344,14 @@ import { reqSaveSpec, reqDelSpec, getSpecOne, reqStockByWeight, reqStockByLen } 
 export default {
     name: 'OptiOnePage',
     components: {
-        PagesBtn: () => import('../elements/Btn.vue')
+        PagesBtn: () => import('../elements/Btn.vue'),
+        VipPlan: () => import('../elements/Plan.vue')
     },
     data: () => ({
         cutRules: false,
         dialogAdd: false,
         dialogSelect: false,
+        dialogVip:false,
         dialog: false,
         selectedSolIndex: false,
         cutBtnDisabled: false,
@@ -638,7 +656,12 @@ export default {
                     this.displayResult(response);
                     return
                 }
+                //提示购买会员
                 this.alertErr(true, response.msg);
+                if (response.code == -2) {
+                    this.dialogVip = true;
+                    return
+                }
             })
                 .catch((error) => {
                     console.log(error);
@@ -675,6 +698,11 @@ export default {
                     return
                 }
                 this.alertErr(true, response.msg);
+                //提示购买会员
+                if (response.code == -2) {
+                    this.dialogVip = true;
+                    return
+                }
             })
                 .catch((error) => {
                     this.disableCutBtn(false);
