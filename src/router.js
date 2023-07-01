@@ -34,6 +34,11 @@ const router = new Router({
           component: () => import('@/components/views/Login')
         },
         {
+          name: 'LoginWx',
+          path: 'loginwx',
+          component: () => import('@/components/views/Loginwx.vue')
+        },
+        {
           name: 'Register',
           path: 'register',
           component: () => import('@/components/views/Register')

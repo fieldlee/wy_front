@@ -21,10 +21,23 @@
       />
     </v-avatar>
 
-    <h2
+    <v-row align="center">
+
+      <v-col >
+        <v-icon
+        :color="!plan.best ? undefined : 'success'"
+        class="ml-2 mr-1"
+        size="24"
+      >mdi-currency-cny</v-icon>
+
+    <span
       class="display-2 font-weight-bold"
       v-text="plan.title"
     />
+      </v-col>
+
+    </v-row>
+
 
     <v-card-text
       class="body-1 font-weight-bold pa-1"
@@ -50,6 +63,7 @@
         type: Object,
         default: () => ({
           best: false,
+          value: undefined,
           heading: undefined,
           icon: undefined,
           title: undefined,

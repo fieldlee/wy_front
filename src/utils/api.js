@@ -1,4 +1,6 @@
 import { get, post } from './http';
+//微信登录
+export const wxLogin = p => post('/wx_login', p);
 //获取验证码
 export const getCaptcha = (url, p) => get(url, p);
 //登录

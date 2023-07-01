@@ -23,28 +23,28 @@ export default {
                 best: false,
                 heading: '季度会员',
                 icon: 'mdi-sofa',
-                title: '99',
+                title: 99,
                 text: '　'
             },
             {
                 best: false,
                 heading: '半年会员',
                 icon: 'mdi-home',
-                title: '199',
+                title: 199,
                 text: '　'
             },
             {
                 best: true,
                 heading: '年度会员',
                 icon: 'mdi-domain',
-                title: '299',
+                title: 299,
                 text: '强烈推荐'
             },
             {
                 best: false,
                 heading: '终身会员',
                 icon: 'mdi-bank',
-                title: '699',
+                title: 699,
                 text: '　'
             }
         ]
